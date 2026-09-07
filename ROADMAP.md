@@ -1,22 +1,23 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : aucune phase démarrée — le repository est vide.**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 et M1 terminés (2026-09-07). Prochaine étape : M2 (authentification & RBAC).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
-## M0 — Infrastructure & fondations
+## M0 — Infrastructure & fondations ✅
 - Initialisation du dépôt Git, structure de dossiers (voir ARCHITECTURE.md §9).
-- Squelette Next.js 15 + TypeScript + Tailwind CSS.
-- Provisionnement du projet Supabase (dev + staging).
-- `.env.example` avec toutes les variables (voir §32 du brief).
-- CI de base (lint, typecheck) sur GitHub Actions.
-- **Definition of Done :** `npm run dev` sert une page d'accueil vide, CI verte sur un commit trivial.
+- Squelette Next.js 16 + TypeScript + Tailwind CSS (v15 visé initialement ; v16 stable sortie entre-temps, voir ARCHITECTURE.md §11).
+- Projet Supabase provisionné : `concierge-app-dev` (eu-west-3, palier gratuit).
+- `.env.example` avec toutes les variables (voir §32 du brief) ; `.env.local` renseigné localement (non commité).
+- CI de base (lint, typecheck, build) sur GitHub Actions.
+- **Definition of Done :** `npm run dev` sert une page d'accueil neutre marquée NOT IMPLEMENTED, lint/typecheck/build passent localement. ✔️
 
-## M1 — Base de données
-- Schéma Drizzle complet (voir DATABASE.md).
-- Migrations initiales + seed des `categories` et `plans`.
-- Policies RLS sur toutes les tables métier.
-- **DoD :** migrations rejouables de zéro, policies vérifiées par un test d'intégration qui confirme qu'un client A ne peut pas lire les données d'un client B.
+## M1 — Base de données ✅
+- Schéma Drizzle complet, 18 tables (voir DATABASE.md), migrations `0000`–`0003` appliquées sur `concierge-app-dev`.
+- Seed des `categories` (10) et `plans` (4, prix placeholder à valider avant lancement réel).
+- RLS activée et policies écrites sur les 18 tables métier (`src/server/db/migrations/0002_rls_policies.sql`).
+- **DoD :** migrations rejouables de zéro (fichiers SQL versionnés) ✔️. Isolation vérifiée par un test manuel direct en base (deux profils client simulés via `request.jwt.claims` + `auth.uid()`) : client A voit sa propre demande (1 ligne), client B ne la voit pas (0 ligne) — fixtures nettoyées après test. Un test d'intégration automatisé (Vitest/pgTAP) reste **NOT IMPLEMENTED** et est prévu en Phase M15 avec le reste de la suite de tests.
+- Point de vigilance documenté : la fonction `current_app_role()` (SECURITY DEFINER, nécessaire pour éviter la récursion RLS) reste exécutable par le rôle `authenticated` — c'est requis pour que les policies fonctionnent, l'accès anonyme a été révoqué (migration `0003`).
 
 ## M2 — Authentification & RBAC
 - Signup/login/logout via Supabase Auth (email/password, magic link).

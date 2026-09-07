@@ -164,6 +164,7 @@ Index : `(request_id, created_at)`.
 | Colonne | Type | Notes |
 |---|---|---|
 | id | uuid PK | |
+| profile_id | uuid FK → profiles.id, nullable, unique | lie le partenaire à un compte (rôle `partner`) pour l'auto-service en Phase M13 ; nullable tant qu'aucun compte n'existe encore |
 | name | text | |
 | category_id | uuid FK → categories.id | |
 | contact_name | text | |
