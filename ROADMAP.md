@@ -1,6 +1,6 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M8 terminés, avec une réserve de vérification documentée sur le temps réel de M7 (2026-09-07). Prochaine étape : M9 (réservations).**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 terminés, avec une réserve de vérification documentée sur le temps réel de M7 (2026-09-07). Le cycle complet NEW → COMPLETED a été bouclé de bout en bout pour la première fois. Prochaine étape : M10 (paiements Stripe).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -189,10 +189,28 @@ Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée a
   'ACCEPTED'`, `proposals.status = 'accepted'`, l'option choisie a `is_selected = true`, l'autre
   `false`. Historique complet des 8 transitions vérifié à l'écran. ✔️
 
-## M9 — Réservations (Booking)
-- Création automatique d'un `Booking` à l'acceptation d'une proposition.
-- Statuts `pending`/`confirmed`/`cancelled`/`completed`.
-- **DoD :** l'acceptation d'une option en M8 crée un booking visible côté client et concierge.
+## M9 — Réservations (Booking) ✅
+- Création automatique du `booking` (statut `pending`) au moment où le client accepte une
+  proposition — étend `respondToProposal` (M8) plutôt que d'ajouter une étape manuelle séparée,
+  fidèle au « automatique » du brief §13.
+- **Décision RLS notable :** la policy `bookings_write_concierge_admin` de M1 ne permettait qu'au
+  concierge/admin d'écrire dans `bookings`, pas au client qui accepte pourtant sa propre
+  proposition. Un trigger DB aurait aussi résolu le problème, mais aurait introduit un ordre de
+  dépendance fragile entre la mise à jour de `requests.status` et le déclenchement du trigger sur
+  `proposals`. Choix retenu : une policy `bookings_insert_client` étroitement scopée (migration
+  `0008`) — le client ne peut créer une réservation que pour sa propre demande, vers une option
+  réellement marquée `is_selected = true`. Reste cohérent avec le reste du code (aucun trigger
+  ailleurs dans le projet hormis `handle_new_user`).
+- `ACCEPTED → BOOKING` chaîné dans la même transition que `WAITING_CLIENT → ACCEPTED`.
+- Actions concierge (`src/server/bookings/actions.ts`) : `confirmBooking` (`BOOKING → CONFIRMED`)
+  et `completeBooking` (`CONFIRMED → COMPLETED`), verrou optimiste sur le statut du booking comme
+  pour `assignRequest` (M6).
+- Composant partagé `BookingCard` affiché sur les deux pages de détail (client en lecture seule,
+  concierge avec les actions de confirmation).
+- **DoD vérifié en conditions réelles**, cycle complet NEW → COMPLETED bouclé pour la première fois
+  sur une demande de test : acceptation d'une proposition → `bookings` créé (`pending`) et visible
+  immédiatement côté client ET concierge → confirmation (`CONFIRMED`) → finalisation (`COMPLETED`).
+  Historique des 7 transitions vérifié par requête SQL directe, cohérent de bout en bout. ✔️
 
 ## M10 — Paiements (Stripe)
 - Paiement (acompte ou total) via Stripe Checkout/Payment Intents.

@@ -303,13 +303,31 @@ export async function respondToProposal(
       requestId,
       profile.id,
       "WAITING_CLIENT",
-      [decision === "accepted" ? "ACCEPTED" : "REJECTED"],
-      decision === "accepted" ? "Proposition acceptée par le client." : "Proposition refusée par le client.",
+      decision === "accepted" ? ["ACCEPTED", "BOOKING"] : ["REJECTED"],
+      decision === "accepted"
+        ? "Proposition acceptée par le client — réservation créée."
+        : "Proposition refusée par le client.",
     );
   } catch {
     return { error: "Réponse enregistrée, mais le statut de la demande n'a pas pu être mis à jour." };
   }
 
+  if (decision === "accepted") {
+    // Création automatique de la réservation (Phase M9). RLS
+    // (`bookings_insert_client`) garantit que le client ne peut créer qu'une
+    // réservation pour SA demande, vers une option réellement sélectionnée.
+    const { error: bookingError } = await supabase.from("bookings").insert({
+      request_id: requestId,
+      proposal_option_id: optionId!,
+      client_id: profile.id,
+      status: "pending",
+    });
+    if (bookingError) {
+      return { error: "Proposition acceptée, mais la réservation n'a pas pu être créée." };
+    }
+  }
+
   revalidatePath(`/client/requests/${requestId}`);
+  revalidatePath(`/concierge/requests/${requestId}`);
   return { error: null };
 }

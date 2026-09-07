@@ -11,6 +11,7 @@ import {
   type HistoryRow,
 } from "@/components/features/request-detail-card";
 import { MessageThread, type ThreadMessage } from "@/components/features/message-thread";
+import { BookingCard } from "@/components/features/booking-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { AssignButton } from "./assign-button";
 import { InternalNotes, type NoteRow } from "./internal-notes";
@@ -19,6 +20,12 @@ import { StartProposalButton } from "./start-proposal-button";
 const STARTABLE_STATUSES = new Set(["ASSIGNED", "IN_PROGRESS", "RESEARCHING", "REJECTED"]);
 
 type ProposalRow = { id: string; status: string; created_at: string };
+
+type BookingRow = {
+  id: string;
+  status: string;
+  proposal_options: { name: string; price: string } | null;
+};
 
 type RequestDetail = {
   id: string;
@@ -103,6 +110,12 @@ export default async function ConciergeRequestDetailPage({
         .returns<ProposalRow[]>(),
     ]);
 
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("id, status, proposal_options(name, price)")
+    .eq("request_id", id)
+    .maybeSingle<BookingRow>();
+
   const attachmentLinks: AttachmentLink[] = await Promise.all(
     (attachments ?? []).map(async (attachment) => {
       const { data: signed } = await supabase.storage
@@ -142,6 +155,19 @@ export default async function ConciergeRequestDetailPage({
       <RequestDetailCard request={request} />
       <AttachmentsCard attachments={attachmentLinks} />
       <HistoryCard history={history ?? []} />
+
+      {booking && (
+        <BookingCard
+          booking={{
+            id: booking.id,
+            status: booking.status,
+            optionName: booking.proposal_options?.name ?? "—",
+            optionPrice: booking.proposal_options?.price ?? "0",
+          }}
+          requestId={request.id}
+          canManage={isMine}
+        />
+      )}
 
       {isMine && (
         <div className="mt-6">

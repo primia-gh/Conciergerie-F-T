@@ -11,9 +11,16 @@ import {
   type HistoryRow,
 } from "@/components/features/request-detail-card";
 import { MessageThread, type ThreadMessage } from "@/components/features/message-thread";
+import { BookingCard } from "@/components/features/booking-card";
 import { ProposalComparison, type OptionForComparison } from "./proposal-comparison";
 
 type ProposalRow = { id: string; status: string; created_at: string };
+
+type BookingRow = {
+  id: string;
+  status: string;
+  proposal_options: { name: string; price: string } | null;
+};
 
 type RequestDetail = {
   id: string;
@@ -114,6 +121,12 @@ export default async function ClientRequestDetailPage({
     }),
   );
 
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("id, status, proposal_options(name, price)")
+    .eq("request_id", id)
+    .maybeSingle<BookingRow>();
+
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
       <Link href="/client/dashboard" className="text-sm text-fg-muted hover:text-fg">
@@ -137,6 +150,19 @@ export default async function ClientRequestDetailPage({
       <RequestDetailCard request={request} />
       <AttachmentsCard attachments={attachmentLinks} />
       <HistoryCard history={history ?? []} />
+
+      {booking && (
+        <BookingCard
+          booking={{
+            id: booking.id,
+            status: booking.status,
+            optionName: booking.proposal_options?.name ?? "—",
+            optionPrice: booking.proposal_options?.price ?? "0",
+          }}
+          requestId={request.id}
+          canManage={false}
+        />
+      )}
 
       {proposalsWithOptions.length > 0 && (
         <div className="mt-6">
