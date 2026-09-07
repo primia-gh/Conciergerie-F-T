@@ -111,6 +111,7 @@ const optionSchema = z.object({
   conditions: z.string().trim().max(1000).optional().or(z.literal("")),
   advantages: z.string().trim().max(1000).optional().or(z.literal("")),
   photoUrls: z.string().trim().max(2000).optional().or(z.literal("")),
+  partnerId: z.string().uuid().optional().or(z.literal("")),
 });
 
 export type AddOptionState = { error: string | null };
@@ -134,6 +135,7 @@ export async function addProposalOption(
     conditions: formData.get("conditions") ?? undefined,
     advantages: formData.get("advantages") ?? undefined,
     photoUrls: formData.get("photoUrls") ?? undefined,
+    partnerId: formData.get("partnerId") ?? undefined,
   });
 
   if (!parsed.success) {
@@ -162,6 +164,7 @@ export async function addProposalOption(
 
   const { error } = await supabase.from("proposal_options").insert({
     proposal_id: data.proposalId,
+    partner_id: emptyToNull(data.partnerId),
     name: data.name,
     description: emptyToNull(data.description),
     price: data.price,

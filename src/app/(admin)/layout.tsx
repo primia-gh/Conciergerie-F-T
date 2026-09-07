@@ -16,6 +16,9 @@ export default async function AdminSpaceLayout({ children }: { children: ReactNo
           <Link href="/admin/requests" className="text-sm text-fg-muted hover:text-fg">
             Demandes
           </Link>
+          <Link href="/admin/partners" className="text-sm text-fg-muted hover:text-fg">
+            Partenaires
+          </Link>
         </div>
       </nav>
       {children}

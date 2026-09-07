@@ -3,7 +3,7 @@
 Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 et M11 terminés (2026-09-07) ; M10 (paiements Stripe) sauté temporairement
 faute de compte Stripe — à reprendre dès que les clés API sont disponibles. Réserve de vérification
 documentée sur le temps réel de M7. Le cycle complet NEW → COMPLETED a été bouclé de bout en bout.
-Prochaine étape : M13 (partenaires).**
+Prochaine étape : M14 (abonnements) ou M15 (sécurité/tests), selon priorité.**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -274,10 +274,18 @@ repris sur M12 en attendant ces informations. Le contenu ci-dessous reste le pla
   ouvertes, 1 terminée, etc., vérifié manuellement), le filtre `status=COMPLETED` réduit
   correctement la liste de 3 à 1 résultat. ✔️
 
-## M13 — Partenaires (mini-CRM)
-- CRUD partenaires (statuts `active`/`inactive`/`pending`).
-- Association d'un partenaire à une option de proposition.
-- **DoD :** un concierge sélectionne un partenaire existant lors de la création d'une option de proposition.
+## M13 — Partenaires (mini-CRM) ✅
+- CRUD partenaires admin (`src/app/(admin)/admin/partners/`) : liste, création, édition. Statuts
+  `active`/`inactive`/`pending`, catégorie, contact, commission, notes — champs du brief §16.
+- Le formulaire d'édition et de création partagent le même composant (`PartnerForm`) ; l'édition
+  lie l'action serveur via `updatePartner.bind(null, id)` plutôt que dupliquer le formulaire.
+- Étape M8 étendue : `addProposalOption` accepte désormais un `partnerId` optionnel ; le formulaire
+  concierge propose un menu déroulant des partenaires **actifs uniquement** (RLS déjà permissive
+  depuis M1, aucune migration nécessaire).
+- **DoD vérifié en conditions réelles** : un partenaire (« Spa Zenitude ») créé via le vrai
+  formulaire admin apparaît immédiatement dans le menu déroulant du concierge lors de la création
+  d'une option de proposition ; sélectionné, confirmé par requête SQL directe
+  (`proposal_options.partner_id` correctement lié à « Spa Zenitude »). ✔️
 
 ## M14 — Abonnements
 - Plans FREE/PREMIUM/VIP/PRIVATE, gestion Stripe Billing/Customer Portal.

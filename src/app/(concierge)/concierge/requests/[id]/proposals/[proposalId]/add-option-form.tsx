@@ -10,7 +10,15 @@ import { addProposalOption, type AddOptionState } from "@/server/proposals/actio
 
 const initialState: AddOptionState = { error: null };
 
-export function AddOptionForm({ proposalId }: { proposalId: string }) {
+export type PartnerOption = { id: string; name: string };
+
+export function AddOptionForm({
+  proposalId,
+  partners,
+}: {
+  proposalId: string;
+  partners: PartnerOption[];
+}) {
   const [state, formAction, pending] = useActionState(addProposalOption, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -43,9 +51,27 @@ export function AddOptionForm({ proposalId }: { proposalId: string }) {
             <Label htmlFor="description">Description</Label>
             <Textarea id="description" name="description" rows={2} />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="address">Adresse</Label>
-            <Input id="address" name="address" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="address">Adresse</Label>
+              <Input id="address" name="address" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="partnerId">Partenaire (optionnel)</Label>
+              <select
+                id="partnerId"
+                name="partnerId"
+                defaultValue=""
+                className="h-10 rounded-md border border-border bg-surface px-3 text-sm text-fg"
+              >
+                <option value="">Aucun</option>
+                {partners.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">

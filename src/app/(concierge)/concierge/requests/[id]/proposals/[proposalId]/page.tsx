@@ -24,11 +24,19 @@ export default async function ProposalEditorPage({
     notFound();
   }
 
-  const { data: options } = await supabase
-    .from("proposal_options")
-    .select("id, name, description, price, address")
-    .eq("proposal_id", proposalId)
-    .returns<OptionRow[]>();
+  const [{ data: options }, { data: partners }] = await Promise.all([
+    supabase
+      .from("proposal_options")
+      .select("id, name, description, price, address")
+      .eq("proposal_id", proposalId)
+      .returns<OptionRow[]>(),
+    supabase
+      .from("partners")
+      .select("id, name")
+      .eq("status", "active")
+      .order("name")
+      .returns<{ id: string; name: string }[]>(),
+  ]);
 
   const isDraft = proposal.status === "draft";
 
@@ -59,7 +67,7 @@ export default async function ProposalEditorPage({
       {isDraft && (
         <>
           <div className="mt-6">
-            <AddOptionForm proposalId={proposalId} />
+            <AddOptionForm proposalId={proposalId} partners={partners ?? []} />
           </div>
           <div className="mt-6 flex justify-end">
             <SendProposalButton
