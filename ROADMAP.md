@@ -1,9 +1,10 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 et M11 terminés (2026-09-07) ; M10 (paiements Stripe) sauté temporairement
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 et M11 à M14 terminés (2026-09-07) ; M10 (paiements Stripe) sauté temporairement
 faute de compte Stripe — à reprendre dès que les clés API sont disponibles. Réserve de vérification
 documentée sur le temps réel de M7. Le cycle complet NEW → COMPLETED a été bouclé de bout en bout.
-Prochaine étape : M14 (abonnements) ou M15 (sécurité/tests), selon priorité.**
+Prochaine étape : M15 (sécurité/RGPD/tests). M16 (déploiement) ne sera entamé qu'avec confirmation
+explicite de l'utilisateur (action difficilement réversible nécessitant un vrai compte Vercel).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -287,10 +288,34 @@ repris sur M12 en attendant ces informations. Le contenu ci-dessous reste le pla
   d'une option de proposition ; sélectionné, confirmé par requête SQL directe
   (`proposal_options.partner_id` correctement lié à « Spa Zenitude »). ✔️
 
-## M14 — Abonnements
-- Plans FREE/PREMIUM/VIP/PRIVATE, gestion Stripe Billing/Customer Portal.
-- Limitation du nombre de demandes selon le plan.
-- **DoD :** un client sur le plan FREE atteint sa limite de demandes et voit un message clair l'invitant à passer au plan supérieur.
+## M14 — Abonnements ✅ (facturation Stripe hors scope, cf. M10)
+- Plans FREE/PREMIUM/VIP/PRIVATE déjà seedés depuis M1 (`plans`). La gestion Stripe
+  Billing/Customer Portal reste liée au blocage M10 (pas de compte Stripe) — un client sans
+  ligne `subscriptions` est donc implicitement rattaché au plan FREE, **sans ligne factice créée**
+  pour éviter de simuler un abonnement qui n'a jamais transité par un paiement réel.
+- Nouveau module `src/server/subscriptions/quota.ts` (`getClientQuota()`) : résout le plan actif
+  du client (via `client_profiles.subscription_id` → `subscriptions.plans`, ou FREE par défaut),
+  compte les `requests` créées depuis le 1ᵉʳ du mois calendaire (UTC), et calcule
+  `canCreateRequest` (`request_limit` à `null` = illimité).
+- Double point d'application, cohérent avec le reste du code (jamais uniquement côté UI) :
+  - `createRequest` (`src/server/requests/actions.ts`) revérifie le quota côté serveur avant
+    l'insertion, et renvoie une erreur explicite nommant le plan et la limite si dépassé —
+    impossible de contourner le blocage en soumettant directement le formulaire.
+  - La page d'entrée de l'assistant (`src/app/(client)/client/requests/new/page.tsx`) affiche un
+    écran « Limite atteinte » à la place du wizard quand le quota est dépassé, avec liens vers le
+    dashboard et `/#tarifs`.
+  - Le dashboard client (`src/app/(client)/client/dashboard/page.tsx`) affiche en permanence
+    l'usage réel (`X/Y demande(s) ce mois-ci` ou « demandes illimitées »), avec un lien
+    « passer à un forfait supérieur » quand le quota est atteint ; le bouton « Faire une demande »
+    passe en variante secondaire (non désactivé au sens HTML — un `<Link>` habillé en bouton ne
+    peut pas porter `disabled`, l'application réelle du blocage reste côté serveur).
+- **DoD vérifié en conditions réelles** : `dev-client@example.invalid` (plan FREE, limite seedée à
+  2 demandes/mois) avait déjà 3 demandes créées ce mois-ci en base. Connecté dans le navigateur :
+  le dashboard affiche bien « Forfait Free — 3/2 demande(s) ce mois-ci — passer à un forfait
+  supérieur » ; en cliquant sur « Faire une demande », l'écran « LIMITE ATTEINTE » s'affiche
+  (« Votre forfait Free autorise 2 demandes par mois... ») avec les deux liens fonctionnels
+  (dashboard, `/#tarifs`) au lieu du wizard. `next typegen`, `tsc --noEmit`, `lint` et `build`
+  passent sans erreur. ✔️
 
 ## M15 — Sécurité, RGPD, tests
 - Audit de sécurité complet (checklist brief §26), rate limiting, validation serveur systématique.

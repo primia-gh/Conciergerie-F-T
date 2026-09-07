@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { assertRole } from "@/server/auth/guards";
 import { assertValidTransition } from "@/server/requests/state-machine";
 import { notify } from "@/server/notifications/dispatcher";
+import { getClientQuota } from "@/server/subscriptions/quota";
 
 const createRequestSchema = z.object({
   categoryId: z.string().uuid("Catégorie invalide."),
@@ -47,6 +48,13 @@ export async function createRequest(formData: FormData): Promise<CreateRequestSt
 
   const data = parsed.data;
   const supabase = await createClient();
+
+  const quota = await getClientQuota(supabase, profile.id);
+  if (!quota.canCreateRequest) {
+    return {
+      error: `Vous avez atteint la limite de ${quota.requestLimit} demande(s) par mois de votre forfait ${quota.planName}. Passez à un forfait supérieur pour continuer.`,
+    };
+  }
 
   const { data: request, error: insertError } = await supabase
     .from("requests")

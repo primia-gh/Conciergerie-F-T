@@ -6,6 +6,7 @@ import { NotificationsBell, type NotificationRow } from "@/components/features/n
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { getClientQuota } from "@/server/subscriptions/quota";
 
 type RequestRow = {
   id: string;
@@ -18,6 +19,8 @@ type RequestRow = {
 export default async function ClientDashboardPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
+
+  const quota = profile ? await getClientQuota(supabase, profile.id) : null;
 
   const [{ data: requests }, { data: notifications }] = await Promise.all([
     supabase
@@ -49,9 +52,25 @@ export default async function ClientDashboardPage() {
         </div>
       </div>
 
-      <Button asChild size="lg" className="mt-8">
+      <Button asChild size="lg" variant={quota && !quota.canCreateRequest ? "secondary" : "primary"} className="mt-8">
         <Link href="/client/requests/new">Faire une demande</Link>
       </Button>
+      {quota && (
+        <p className="mt-2 text-sm text-fg-muted">
+          Forfait {quota.planName} —{" "}
+          {quota.requestLimit === null
+            ? "demandes illimitées"
+            : `${quota.usedThisMonth}/${quota.requestLimit} demande(s) ce mois-ci`}
+          {!quota.canCreateRequest && (
+            <>
+              {" — "}
+              <Link href="/#tarifs" className="font-medium text-accent hover:underline">
+                passer à un forfait supérieur
+              </Link>
+            </>
+          )}
+        </p>
+      )}
 
       <div className="mt-10">
         <h2 className="text-sm font-medium uppercase tracking-wide text-fg-muted">
