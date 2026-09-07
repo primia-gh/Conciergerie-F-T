@@ -101,6 +101,10 @@ export const profiles = pgTable("profiles", {
     .primaryKey()
     .references(() => authUsers.id, { onDelete: "cascade" }),
   role: roleEnum("role").notNull(),
+  // Dupliqué depuis auth.users (synchronisé par le trigger handle_new_user) :
+  // notre client applicatif n'a pas accès à auth.users (pas de clé service
+  // role configurée) et a besoin de l'email pour les notifications (M11).
+  email: text("email"),
   firstName: text("first_name"),
   lastName: text("last_name"),
   phone: text("phone"),

@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { assertRole } from "@/server/auth/guards";
 import { assertValidTransition, type RequestStatus } from "@/server/requests/state-machine";
+import { notify } from "@/server/notifications/dispatcher";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -223,6 +224,21 @@ export async function sendProposal(proposalId: string, requestId: string): Promi
     return { error: "Proposition envoyée, mais le statut de la demande n'a pas pu être mis à jour." };
   }
 
+  const { data: request } = await supabase
+    .from("requests")
+    .select("client_id")
+    .eq("id", requestId)
+    .maybeSingle<{ client_id: string }>();
+
+  if (request) {
+    await notify(supabase, {
+      userId: request.client_id,
+      type: "PROPOSAL_CREATED",
+      payload: { requestId, proposalId },
+      emailBody: "Votre concierge vient de vous envoyer une proposition à comparer.",
+    });
+  }
+
   revalidatePath(`/concierge/requests/${requestId}`);
   redirect(`/concierge/requests/${requestId}`);
 }
@@ -267,6 +283,12 @@ export async function respondToProposal(
 
   const { proposalId, requestId, optionId, decision, feedback } = parsed.data;
   const supabase = await createClient();
+
+  const { data: proposalBeforeResponse } = await supabase
+    .from("proposals")
+    .select("concierge_id")
+    .eq("id", proposalId)
+    .maybeSingle<{ concierge_id: string }>();
 
   if (decision === "accepted") {
     const { error: optionError } = await supabase
@@ -325,6 +347,18 @@ export async function respondToProposal(
     if (bookingError) {
       return { error: "Proposition acceptée, mais la réservation n'a pas pu être créée." };
     }
+  }
+
+  if (proposalBeforeResponse) {
+    await notify(supabase, {
+      userId: proposalBeforeResponse.concierge_id,
+      type: decision === "accepted" ? "PROPOSAL_ACCEPTED" : "PROPOSAL_REJECTED",
+      payload: { requestId, proposalId },
+      emailBody:
+        decision === "accepted"
+          ? "Le client a accepté votre proposition."
+          : "Le client a refusé votre proposition.",
+    });
   }
 
   revalidatePath(`/client/requests/${requestId}`);

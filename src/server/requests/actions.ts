@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { assertRole } from "@/server/auth/guards";
 import { assertValidTransition } from "@/server/requests/state-machine";
+import { notify } from "@/server/notifications/dispatcher";
 
 const createRequestSchema = z.object({
   categoryId: z.string().uuid("Catégorie invalide."),
@@ -107,6 +108,13 @@ export async function createRequest(formData: FormData): Promise<CreateRequestSt
     });
   }
 
+  await notify(supabase, {
+    userId: profile.id,
+    type: "REQUEST_CREATED",
+    payload: { requestId: request.id, title: data.title },
+    emailBody: `Bonjour, nous avons bien reçu votre demande « ${data.title} ». Votre concierge revient vers vous rapidement.`,
+  });
+
   revalidatePath("/client/dashboard");
   redirect("/client/dashboard");
 }
@@ -130,8 +138,8 @@ export async function assignRequest(requestId: string): Promise<AssignRequestSta
     .eq("id", requestId)
     .eq("status", "NEW")
     .is("concierge_id", null)
-    .select("id")
-    .maybeSingle<{ id: string }>();
+    .select("id, client_id")
+    .maybeSingle<{ id: string; client_id: string }>();
 
   if (error) {
     return { error: "Impossible de prendre en charge cette demande." };
@@ -146,6 +154,13 @@ export async function assignRequest(requestId: string): Promise<AssignRequestSta
     to_status: "ASSIGNED",
     changed_by: profile.id,
     note: "Prise en charge par le concierge.",
+  });
+
+  await notify(supabase, {
+    userId: updated.client_id,
+    type: "REQUEST_ASSIGNED",
+    payload: { requestId },
+    emailBody: "Bonne nouvelle : un concierge s'occupe désormais de votre demande.",
   });
 
   revalidatePath("/concierge/dashboard");

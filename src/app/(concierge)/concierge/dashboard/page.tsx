@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/server/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/features/sign-out-button";
+import { NotificationsBell, type NotificationRow } from "@/components/features/notifications-bell";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -49,7 +50,7 @@ export default async function ConciergeDashboardPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
 
-  const [{ data: newRequests }, { data: myRequests }] = await Promise.all([
+  const [{ data: newRequests }, { data: myRequests }, { data: notifications }] = await Promise.all([
     supabase
       .from("requests")
       .select("id, title, status, priority, created_at, categories(name)")
@@ -63,6 +64,13 @@ export default async function ConciergeDashboardPage() {
       .eq("concierge_id", profile?.id ?? "")
       .order("created_at", { ascending: false })
       .returns<RequestRow[]>(),
+    supabase
+      .from("notifications")
+      .select("id, type, read_at, created_at")
+      .eq("channel", "in_app")
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .returns<NotificationRow[]>(),
   ]);
 
   return (
@@ -74,7 +82,10 @@ export default async function ConciergeDashboardPage() {
           </h1>
           <p className="mt-1 text-fg-muted">Voici les demandes qui vous attendent.</p>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-2">
+          <NotificationsBell notifications={notifications ?? []} currentPath="/concierge/dashboard" />
+          <SignOutButton />
+        </div>
       </div>
 
       <section className="mt-10">

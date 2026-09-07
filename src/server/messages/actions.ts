@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { assertRole } from "@/server/auth/guards";
+import { notify } from "@/server/notifications/dispatcher";
 
 const noteSchema = z.object({
   requestId: z.string().uuid(),
@@ -87,6 +88,28 @@ export async function sendMessage(
 
   if (error) {
     return { error: "Impossible d'envoyer le message." };
+  }
+
+  const { data: request } = await supabase
+    .from("requests")
+    .select("client_id, concierge_id")
+    .eq("id", parsed.data.requestId)
+    .maybeSingle<{ client_id: string; concierge_id: string | null }>();
+
+  const recipientId =
+    request && request.client_id !== profile.id
+      ? request.client_id
+      : request?.concierge_id && request.concierge_id !== profile.id
+        ? request.concierge_id
+        : null;
+
+  if (recipientId) {
+    await notify(supabase, {
+      userId: recipientId,
+      type: "MESSAGE_RECEIVED",
+      payload: { requestId: parsed.data.requestId },
+      emailBody: "Vous avez reçu un nouveau message concernant votre demande.",
+    });
   }
 
   return { error: null };

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/server/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/features/sign-out-button";
+import { NotificationsBell, type NotificationRow } from "@/components/features/notifications-bell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,11 +19,20 @@ export default async function ClientDashboardPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
 
-  const { data: requests } = await supabase
-    .from("requests")
-    .select("id, title, status, created_at, categories(name)")
-    .order("created_at", { ascending: false })
-    .returns<RequestRow[]>();
+  const [{ data: requests }, { data: notifications }] = await Promise.all([
+    supabase
+      .from("requests")
+      .select("id, title, status, created_at, categories(name)")
+      .order("created_at", { ascending: false })
+      .returns<RequestRow[]>(),
+    supabase
+      .from("notifications")
+      .select("id, type, read_at, created_at")
+      .eq("channel", "in_app")
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .returns<NotificationRow[]>(),
+  ]);
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -33,7 +43,10 @@ export default async function ClientDashboardPage() {
           </h1>
           <p className="mt-1 text-fg-muted">Comment puis-je vous aider ?</p>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-2">
+          <NotificationsBell notifications={notifications ?? []} currentPath="/client/dashboard" />
+          <SignOutButton />
+        </div>
       </div>
 
       <Button asChild size="lg" className="mt-8">

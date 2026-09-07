@@ -44,6 +44,7 @@ erDiagram
 |---|---|---|
 | id | uuid PK | = `auth.users.id` |
 | role | enum(`client`,`concierge`,`admin`,`partner`) | un seul rôle par utilisateur au MVP |
+| email | text | dupliqué depuis `auth.users` par le trigger `handle_new_user` — évite de dépendre de la service role key pour les notifications (M11) |
 | first_name | text | |
 | last_name | text | |
 | phone | text | nullable |

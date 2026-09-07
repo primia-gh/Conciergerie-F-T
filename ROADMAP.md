@@ -1,6 +1,9 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 terminés, avec une réserve de vérification documentée sur le temps réel de M7 (2026-09-07). Le cycle complet NEW → COMPLETED a été bouclé de bout en bout pour la première fois. Prochaine étape : M10 (paiements Stripe).**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 et M11 terminés (2026-09-07) ; M10 (paiements Stripe) sauté temporairement
+faute de compte Stripe — à reprendre dès que les clés API sont disponibles. Réserve de vérification
+documentée sur le temps réel de M7. Le cycle complet NEW → COMPLETED a été bouclé de bout en bout.
+Prochaine étape : M12 (administration).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -212,16 +215,43 @@ Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée a
   immédiatement côté client ET concierge → confirmation (`CONFIRMED`) → finalisation (`COMPLETED`).
   Historique des 7 transitions vérifié par requête SQL directe, cohérent de bout en bout. ✔️
 
-## M10 — Paiements (Stripe)
+## M10 — Paiements (Stripe) ⏸️ SAUTÉ (bloqué)
+**Non implémenté.** Nécessite un compte Stripe réel (mode test suffit) et ses clés API
+(`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`), que je ne
+peux pas créer moi-même (identité, coordonnées bancaires du porteur du projet). Développement
+repris sur M12 en attendant ces informations. Le contenu ci-dessous reste le plan prévu, inchangé.
+
 - Paiement (acompte ou total) via Stripe Checkout/Payment Intents.
 - Webhooks signés, mise à jour du statut de paiement et du booking.
 - Remboursement, facture.
 - **DoD :** un paiement de test Stripe (mode test) passe de `pending` à `succeeded`, le webhook met à jour la base, une facture est accessible.
 
-## M11 — Notifications
-- Dispatcher d'événements (liste brief §23).
-- Canaux email (Resend) et in-app (Realtime) au MVP ; SMS (Twilio) marqué `NOT IMPLEMENTED` tant que non branché.
-- **DoD :** la création d'une demande déclenche un email de confirmation et une notification in-app.
+## M11 — Notifications ✅ (canal email non vérifiable — clé manquante)
+- Dispatcher central (`src/server/notifications/dispatcher.ts`) couvrant les 10 événements du
+  brief §23. Canal in-app toujours écrit ; canal email best-effort via Resend, jamais simulé —
+  sans `RESEND_API_KEY` (non configurée, même blocage que Stripe pour M10), le dispatcher logue
+  clairement `NOT IMPLEMENTED` et n'insère aucune ligne "email" mensongère.
+- Ajout de `profiles.email` (migrations `0009`/`0010`), synchronisé par le trigger
+  `handle_new_user` — nécessaire pour cibler un envoi email sans clé service role (absente ici).
+- Migration `0011` : policy RLS `notifications_insert_authenticated` — la policy M1 ne permettait
+  l'écriture que via service role (absente). Simplification assumée et documentée dans la
+  migration : tout utilisateur connecté peut créer une notification pour n'importe quel
+  destinataire (pas de fuite de données, juste un risque de spam par un compte compromis — à
+  revoir en M14 si besoin d'un contrôle plus strict).
+- Câblé dans les actions existantes : `createRequest` (M5) → `REQUEST_CREATED`, `assignRequest`
+  (M6) → `REQUEST_ASSIGNED`, `sendMessage` (M7) → `MESSAGE_RECEIVED` au bon destinataire (résolu
+  dynamiquement, pas toujours le client), `sendProposal`/`respondToProposal` (M8) →
+  `PROPOSAL_CREATED`/`ACCEPTED`/`REJECTED`, `confirmBooking`/`completeBooking` (M9) →
+  `BOOKING_CONFIRMED`/`REQUEST_COMPLETED`. `PAYMENT_SUCCESS` et `BOOKING_CANCELLED` restent
+  **NOT IMPLEMENTED** (M10 non fait, pas de flux d'annulation construit).
+- Cloche de notifications (`NotificationsBell`) sur les dashboards client et concierge : compteur
+  non lus, liste, marquage lu au clic. Rendu au chargement de page (pas de Realtime ici, pour ne
+  pas ajouter une seconde fonctionnalité non vérifiable dans cet environnement en plus de M7).
+- **DoD vérifié en conditions réelles** pour le canal in-app : création d'une demande → badge « 1 »
+  sur la cloche du client, libellé correct, marquage lu persistant en base. Notification
+  cross-rôle également vérifiée (le concierge prend en charge → le CLIENT reçoit la notification,
+  pas l'acteur). Le volet email du DoD (« déclenche un email ») reste non vérifiable sans clé
+  Resend — comportement honnête confirmé par le log `NOT IMPLEMENTED`, pas par un envoi simulé.
 
 ## M12 — Administration
 - Back-office : utilisateurs, concierges, demandes, propositions, réservations, catégories, paiements.
