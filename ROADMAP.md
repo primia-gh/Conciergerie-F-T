@@ -1,6 +1,6 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M4 terminés (2026-09-07). Prochaine étape : M5 (création de demande côté client).**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M5 terminés (2026-09-07). Prochaine étape : M6 (dashboard concierge).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -87,11 +87,33 @@ Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée a
   (Vercel), reporté à la Phase M16 (déploiement) où l'outillage de mesure de performance est déjà
   prévu.
 
-## M5 — Espace client : profil & création de demande
-- CRUD profil client, préférences.
-- Wizard de création de demande en 8 étapes (brief §10).
-- Machine à états `Request` côté serveur (ARCHITECTURE.md §5).
-- **DoD :** un client crée une demande de bout en bout, elle apparaît en base avec statut `NEW`, historisée.
+## M5 — Espace client : création de demande (cœur du produit) ✅
+- Wizard de création de demande en 8 étapes exactement conformes au brief §10 (catégorie,
+  titre+description, date/heure, lieu, budget, préférences, pièces jointes, confirmation) —
+  `src/app/(client)/client/requests/new/`. Navigation par étapes en `useState` côté client,
+  soumission finale via Server Action (`src/server/requests/actions.ts`), validation Zod serveur.
+- Machine à états `Request` formalisée dans `src/server/requests/state-machine.ts` (table de
+  transitions + `assertValidTransition`), réutilisable par les phases suivantes (M6+).
+- Ajout du champ `requests.preferences` (texte, nullable) — l'étape 6 du wizard n'avait pas de
+  colonne dédiée dans le schéma initial ; corrigé avant toute donnée réelle (migration `0005`).
+- Stockage des pièces jointes : bucket Supabase Storage privé `request-attachments` + policies RLS
+  sur `storage.objects` scopées par `request_id` (migration `0006`). Chaque demande créée écrit
+  aussi une entrée `request_status_history` (`NEW`, acteur = client).
+- Dashboard client (M2) mis à jour : affiche désormais la vraie liste des demandes du client
+  (titre, catégorie, statut) au lieu du placeholder NOT IMPLEMENTED ; le CTA « Faire une demande »
+  est maintenant fonctionnel.
+- CRUD profil client / préférences de compte (distinct des préférences par demande) **reporté** :
+  pas de cas d'usage réel avant que le concierge (M6) et les propositions (M8) existent pour
+  exploiter ces préférences ; simple champ `client_profiles.preferences` déjà en base (M1).
+- **DoD vérifié en conditions réelles** (navigateur + Supabase live, compte `dev-client`) : les 8
+  étapes se remplissent et se naviguent correctement, l'écran de confirmation récapitule les
+  bonnes valeurs, la soumission crée réellement la ligne `requests` (statut `NEW`), une entrée
+  `request_status_history` associée, et redirige vers le dashboard qui affiche la demande créée.
+  Confirmé aussi par requête SQL directe (`history_count: 1`, `last_status: NEW`). ✔️
+- Écart de test assumé : l'upload de pièce jointe n'a pas été vérifié interactivement dans le
+  navigateur (limite de l'outillage de test automatisé pour simuler un vrai choix de fichier) —
+  le bucket et les policies RLS ont été vérifiés par SQL direct, et le code d'upload suit l'API
+  standard `supabase.storage.upload()`. À confirmer manuellement ou via test automatisé en M15.
 
 ## M6 — Espace concierge : dashboard opérationnel
 - Liste des demandes (nouvelles, urgentes, en cours, en attente client).

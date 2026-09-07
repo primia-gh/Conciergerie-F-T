@@ -212,6 +212,7 @@ export const requests = pgTable(
   requestedTime: time("requested_time"),
   budgetMin: numeric("budget_min", { precision: 10, scale: 2 }),
   budgetMax: numeric("budget_max", { precision: 10, scale: 2 }),
+  preferences: text("preferences"),
   priority: priorityEnum("priority").notNull().default("normal"),
   status: requestStatusEnum("status").notNull().default("NEW"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

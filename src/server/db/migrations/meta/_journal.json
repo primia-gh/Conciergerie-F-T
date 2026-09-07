@@ -36,6 +36,20 @@
       "when": 1788779199999,
       "tag": "0004_handle_new_user_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788781866817,
+      "tag": "0005_add_request_preferences",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788782000000,
+      "tag": "0006_request_attachments_storage",
+      "breakpoints": true
     }
   ]
 }

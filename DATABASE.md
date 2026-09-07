@@ -89,6 +89,7 @@ Restaurant, Voyage, Hôtel, Transport, Événement, Expérience, Bien-être, Sho
 | requested_date | date | nullable |
 | requested_time | time | nullable |
 | budget_min / budget_max | numeric | nullable |
+| preferences | text | nullable — étape 6 du wizard (brief §10), distinct de la description libre |
 | priority | enum(`low`,`normal`,`high`,`urgent`) | défaut `normal` |
 | status | enum (voir ARCHITECTURE.md §5) | défaut `NEW` |
 | created_at / updated_at | timestamptz | |
