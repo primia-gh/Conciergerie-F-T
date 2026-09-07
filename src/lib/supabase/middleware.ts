@@ -1,7 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email"];
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/robots.txt", "/sitemap.xml"];
+
+// Next.js suffixe les fichiers de convention (opengraph-image, icon...) d'un
+// hash en production : on autorise le préfixe plutôt qu'une correspondance exacte.
+const PUBLIC_PATH_PREFIXES = ["/opengraph-image", "/icon", "/apple-icon"];
+
+function isPublicPath(pathname: string) {
+  return PUBLIC_PATHS.includes(pathname) || PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p));
+}
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -33,9 +41,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isPublicPath = PUBLIC_PATHS.includes(request.nextUrl.pathname);
-
-  if (!user && !isPublicPath) {
+  if (!user && !isPublicPath(request.nextUrl.pathname)) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);

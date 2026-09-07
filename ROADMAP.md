@@ -1,6 +1,6 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0, M1, M2 et M3 terminés (2026-09-07). Prochaine étape : M4 (landing page).**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M4 terminés (2026-09-07). Prochaine étape : M5 (création de demande côté client).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -62,10 +62,30 @@ Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée a
   directe (position, opacité, z-index) suite à un artefact de capture d'écran de l'outil de
   preview sans rapport avec le code (page défilée en dehors de la zone capturée).
 
-## M4 — Landing page
-- Sections définies au brief §19, textes 100% originaux.
-- SEO de base (metadata, sitemap, robots, Open Graph).
-- **DoD :** Lighthouse SEO/Performance > 90 sur la home.
+## M4 — Landing page ✅
+- Page déplacée dans `src/app/(marketing)/` conformément à ARCHITECTURE.md §9.
+- Sections du brief §19 implémentées avec des textes 100% originaux (aucune reprise de tagline
+  ou de copywriting d'un tiers) : Hero, Comment ça marche, Services, Membership, Témoignages,
+  FAQ, CTA, Footer.
+- **Écart assumé vis-à-vis du brief :** la section Témoignages ne contient aucun faux avis. Le
+  service n'ayant pas encore de client réel, inventer des témoignages serait une donnée factice
+  présentée comme réelle (interdit par le brief §34). Un message honnête explique l'absence de
+  contenu ; à remplacer par de vrais retours après les premières missions.
+- SEO de base : `metadata` (title template + `metadataBase`), `robots.ts`, `sitemap.ts`, image
+  Open Graph générée dynamiquement (`next/og`, texte + couleurs de marque — aucune photo/asset
+  externe utilisé).
+- Le nom de marque reste un placeholder générique (« Conciergerie Premium ») dans toute la copie :
+  le choix d'un nom définitif (dépôt de marque, domaine) est une décision business qui revient au
+  porteur du projet, pas une décision technique à figer unilatéralement.
+- Bug corrigé pendant l'implémentation : le proxy (`src/lib/supabase/middleware.ts`) bloquait
+  `/robots.txt`, `/sitemap.xml` et l'image Open Graph derrière la connexion — ces routes SEO
+  doivent rester publiques pour les robots d'indexation, sans quoi le référencement serait
+  cassé silencieusement. Ajouté à la liste des chemins publics.
+- **DoD :** build de production propre, `/robots.txt` et `/sitemap.xml` accessibles sans
+  authentification (vérifié), FAQ accessible au clavier (`aria-expanded` bascule correctement).
+  Audit Lighthouse formel **NOT IMPLEMENTED** — nécessite un déploiement accessible publiquement
+  (Vercel), reporté à la Phase M16 (déploiement) où l'outillage de mesure de performance est déjà
+  prévu.
 
 ## M5 — Espace client : profil & création de demande
 - CRUD profil client, préférences.

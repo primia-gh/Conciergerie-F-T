@@ -21,7 +21,11 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  title: "Conciergerie Premium",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  title: {
+    default: "Conciergerie Premium",
+    template: "%s — Conciergerie Premium",
+  },
   description: "Plateforme de conciergerie premium — projet en construction.",
 };
 
