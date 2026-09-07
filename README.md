@@ -44,6 +44,19 @@ docker compose up -d
 | `npm run start` | Sert le build de production |
 | `npm run lint` | ESLint |
 
+## Comptes de test (dev uniquement)
+
+`src/server/db/seed-dev-accounts.sql` crée 4 comptes pré-confirmés (un par rôle) pour tester le
+parcours de connexion sans boîte mail. Mot de passe : `TestPassword123!`. À exécuter uniquement
+sur le projet Supabase de dev, jamais sur staging/production.
+
+| Email | Rôle |
+|---|---|
+| dev-client@example.invalid | client |
+| dev-concierge@example.invalid | concierge |
+| dev-admin@example.invalid | admin |
+| dev-partner@example.invalid | partner |
+
 ## Contribution
 
 Commits atomiques, préfixés (`feat:`, `fix:`, `test:`, `refactor:`, ...). Aucune fonctionnalité n'est déclarée terminée si elle n'est pas réellement fonctionnelle, testée et documentée — voir la règle §34 du cahier des charges produit.

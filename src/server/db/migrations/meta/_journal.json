@@ -29,6 +29,13 @@
       "when": 1788779099999,
       "tag": "0003_restrict_current_app_role_execute",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788779199999,
+      "tag": "0004_handle_new_user_trigger",
+      "breakpoints": true
     }
   ]
 }

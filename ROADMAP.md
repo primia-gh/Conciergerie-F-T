@@ -1,6 +1,6 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 et M1 terminés (2026-09-07). Prochaine étape : M2 (authentification & RBAC).**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0, M1 et M2 terminés (2026-09-07). Prochaine étape : M3 (design system).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -19,11 +19,30 @@ Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée a
 - **DoD :** migrations rejouables de zéro (fichiers SQL versionnés) ✔️. Isolation vérifiée par un test manuel direct en base (deux profils client simulés via `request.jwt.claims` + `auth.uid()`) : client A voit sa propre demande (1 ligne), client B ne la voit pas (0 ligne) — fixtures nettoyées après test. Un test d'intégration automatisé (Vitest/pgTAP) reste **NOT IMPLEMENTED** et est prévu en Phase M15 avec le reste de la suite de tests.
 - Point de vigilance documenté : la fonction `current_app_role()` (SECURITY DEFINER, nécessaire pour éviter la récursion RLS) reste exécutable par le rôle `authenticated` — c'est requis pour que les policies fonctionnent, l'accès anonyme a été révoqué (migration `0003`).
 
-## M2 — Authentification & RBAC
-- Signup/login/logout via Supabase Auth (email/password, magic link).
-- Table `profiles` + attribution de rôle à l'inscription.
-- Guards RBAC serveur (`assertRole`) + middleware de session.
-- **DoD :** les 4 rôles peuvent se connecter et sont redirigés vers leur espace respectif ; un client ne peut pas accéder à une route admin (test e2e).
+## M2 — Authentification & RBAC ✅
+- Signup/login/logout via Supabase Auth (email/password). Magic link non implémenté au MVP
+  (email/password suffit pour le lancement ; réévaluer si la friction d'onboarding le justifie).
+- Trigger DB `handle_new_user` : attribue toujours le rôle `client` à l'inscription publique
+  (jamais lu depuis les métadonnées fournies par l'utilisateur — sinon élévation de privilège
+  possible). Comptes concierge/admin/partner provisionnés hors self-service pour l'instant.
+- Guards RBAC serveur : `requireRole()` (redirige, pour layouts) et `assertRole()` (lève une
+  erreur, pour Server Actions) dans `src/server/auth/guards.ts`.
+- Rafraîchissement de session via `src/proxy.ts` (convention Next.js 16, ex-`middleware.ts`).
+- 4 espaces protégés créés (`/client`, `/concierge`, `/admin`, `/partner`), chacun avec un guard
+  de layout ; seul `/client/dashboard` a un contenu réel (les 3 autres sont des placeholders
+  NOT IMPLEMENTED en attendant leurs phases respectives M6/M12/M13).
+- **DoD vérifié en conditions réelles** (navigateur + projet Supabase réel, pas de simulation) :
+  les 4 comptes de test (`seed-dev-accounts.sql`) se connectent et atterrissent chacun sur leur
+  propre espace ; un client qui tente `/admin/dashboard` est renvoyé vers `/client/dashboard` ;
+  un utilisateur non connecté qui tente une route protégée est renvoyé vers `/login` ; la
+  déconnexion invalide bien la session. ✔️
+- Bug détecté et corrigé pendant la vérification : `getCurrentProfile()` typait les données
+  Supabase (snake_case réel) avec le type Drizzle (camelCase), donnant un `profile.firstName`
+  `undefined` silencieux. Le type `Profile` de `session.ts` reflète maintenant les vraies clés
+  renvoyées par PostgREST.
+- Point d'environnement documenté : les comptes de test insérés directement en base doivent avoir
+  les colonnes `*_token`/`*_change` à `''` et non `NULL`, sinon GoTrue échoue au login avec
+  « Database error querying schema » (cause réelle : erreur de scan Go sur NULL).
 
 ## M3 — Design system
 - Composants de base : Button, Input, Textarea, Select, Modal, Card, Badge, Avatar, Dropdown, Toast, Tabs, Table, Pagination, DatePicker, FileUpload.
