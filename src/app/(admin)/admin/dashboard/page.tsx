@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getCurrentProfile } from "@/server/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/features/sign-out-button";
@@ -91,7 +92,12 @@ export default async function AdminDashboardPage() {
           </h1>
           <p className="mt-1 text-fg-muted">Vue d&apos;ensemble de la plateforme.</p>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-2">
+          <Link href="/account" className="text-sm text-fg-muted hover:underline">
+            Mon compte
+          </Link>
+          <SignOutButton />
+        </div>
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">

@@ -1,11 +1,18 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { dashboardPathForRole } from "@/server/auth/guards";
 import type { Profile } from "@/server/auth/session";
+import { checkRateLimit } from "@/server/security/rate-limit";
 
 export type AuthActionState = { error: string | null };
+
+async function clientIp(): Promise<string> {
+  const headerList = await headers();
+  return headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+}
 
 export async function signIn(
   _prevState: AuthActionState,
@@ -16,6 +23,11 @@ export async function signIn(
 
   if (!email || !password) {
     return { error: "Email et mot de passe requis." };
+  }
+
+  const ip = await clientIp();
+  if (!checkRateLimit(`signin:${ip}`, 10, 60_000)) {
+    return { error: "Trop de tentatives. Réessayez dans une minute." };
   }
 
   const supabase = await createClient();
@@ -56,6 +68,11 @@ export async function signUp(
   }
   if (password.length < 8) {
     return { error: "Le mot de passe doit contenir au moins 8 caractères." };
+  }
+
+  const ip = await clientIp();
+  if (!checkRateLimit(`signup:${ip}`, 5, 60 * 60_000)) {
+    return { error: "Trop de tentatives d'inscription. Réessayez plus tard." };
   }
 
   const supabase = await createClient();

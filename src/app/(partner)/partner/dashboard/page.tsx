@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getCurrentProfile } from "@/server/auth/session";
 import { SignOutButton } from "@/components/features/sign-out-button";
 
@@ -18,7 +19,12 @@ export default async function PartnerDashboardPage() {
             La gestion des services et réservations arrive en Phase M13 (voir ROADMAP.md).
           </p>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-2">
+          <Link href="/account" className="text-sm text-zinc-600 hover:underline dark:text-zinc-400">
+            Mon compte
+          </Link>
+          <SignOutButton />
+        </div>
       </div>
     </div>
   );

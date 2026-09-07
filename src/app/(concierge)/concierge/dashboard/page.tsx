@@ -84,6 +84,9 @@ export default async function ConciergeDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <NotificationsBell notifications={notifications ?? []} currentPath="/concierge/dashboard" />
+          <Link href="/account" className="text-sm text-fg-muted hover:underline">
+            Mon compte
+          </Link>
           <SignOutButton />
         </div>
       </div>

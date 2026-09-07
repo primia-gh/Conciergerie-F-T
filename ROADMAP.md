@@ -1,10 +1,12 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 et M11 à M14 terminés (2026-09-07) ; M10 (paiements Stripe) sauté temporairement
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 et M11 à M15 terminés (2026-09-07) ; M10 (paiements Stripe) sauté temporairement
 faute de compte Stripe — à reprendre dès que les clés API sont disponibles. Réserve de vérification
 documentée sur le temps réel de M7. Le cycle complet NEW → COMPLETED a été bouclé de bout en bout.
-Prochaine étape : M15 (sécurité/RGPD/tests). M16 (déploiement) ne sera entamé qu'avec confirmation
-explicite de l'utilisateur (action difficilement réversible nécessitant un vrai compte Vercel).**
+Sécurité durcie (RLS, en-têtes, rate limiting) et RGPD fonctionnel de bout en bout (export +
+suppression de compte) vérifiés en conditions réelles (M15). Seule reste M16 (déploiement), qui ne
+sera entamée qu'avec confirmation explicite de l'utilisateur (action difficilement réversible
+nécessitant un vrai compte Vercel).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -317,12 +319,63 @@ repris sur M12 en attendant ces informations. Le contenu ci-dessous reste le pla
   (dashboard, `/#tarifs`) au lieu du wizard. `next typegen`, `tsc --noEmit`, `lint` et `build`
   passent sans erreur. ✔️
 
-## M15 — Sécurité, RGPD, tests
-- Audit de sécurité complet (checklist brief §26), rate limiting, validation serveur systématique.
-- RGPD : export de données, suppression de compte (soft-delete), politique de confidentialité.
-- Couverture de tests : unitaires (services), intégration (API/DB), e2e (parcours critiques listés brief §27).
-- Rédaction de `SECURITY.md`, `API.md`, `DEPLOYMENT.md`, `DECISIONS.md`.
-- **DoD :** suite de tests verte en CI, checklist sécurité passée en revue, RGPD fonctionnel de bout en bout.
+## M15 — Sécurité, RGPD, tests ✅ (scope détaillé ci-dessous, compromis assumés et documentés)
+
+### Sécurité
+- Audit via l'advisor sécurité Supabase (`get_advisors`) : durci `handle_new_user()` (migration
+  0012, `EXECUTE` retiré à tous les rôles — fonction déclenchée uniquement par trigger, jamais
+  censée être appelable en RPC), plus `WARN` résiduel que `current_app_role()` (nécessaire aux
+  policies RLS, déjà accepté depuis M1) et "Leaked Password Protection" (réglage dashboard Supabase,
+  hors SQL, listé en action manuelle dans SECURITY.md §10).
+- Bucket `request-attachments` restreint côté Storage (migration 0014) : 10 Mo max, types
+  image/PDF uniquement — pas seulement une vérification applicative contournable.
+- Rate limiting sur signIn/signUp (`src/server/security/rate-limit.ts`), en mémoire — limite
+  mono-instance explicitement documentée (SECURITY.md §6), remplacement par Redis identifié avant
+  prod multi-instance.
+- En-têtes de sécurité globaux (`next.config.ts`) : CSP, X-Frame-Options, nosniff, Referrer-Policy,
+  Permissions-Policy, HSTS — actifs en production uniquement (Turbopack/HMR dev cassé sinon,
+  constaté en conditions réelles). Compromis assumé sur `script-src`/`style-src`
+  (`unsafe-inline` plutôt qu'un nonce — voir DECISIONS.md, tentative de CSP stricte à nonce
+  documentée puis abandonnée après avoir cassé l'hydratation React même en build de production réel).
+- Trigger `handle_profile_soft_delete` (migration 0013, SECURITY DEFINER) : bannit
+  `auth.users.banned_until` à la suppression de compte.
+
+### RGPD
+- Export de données (`exportMyData`, `/account`) : JSON complet, scope explicite sur l'utilisateur
+  courant (profil, demandes, messages, réservations, notifications, pièces jointes, propositions,
+  fiche partenaire).
+- Suppression de compte (`deleteMyAccount`, `/account`, modal de confirmation "tapez SUPPRIMER") :
+  anonymise les champs personnels de `profiles`, bannit le compte Auth, déconnecte, redirige vers
+  `/compte-supprime`.
+- Politique de confidentialité publiée (`/confidentialite`), liée depuis le footer et depuis
+  `/account` — identité du responsable de traitement marquée `[À COMPLÉTER]` (pas d'entité légale
+  réelle inventée) plutôt que des informations fictives.
+- Page `/account` accessible aux 4 rôles, lien "Mon compte" ajouté sur chacun des 4 dashboards.
+
+### Tests
+- Vitest installé (`vitest.config.ts`), script `npm run test`, intégré à la CI GitHub Actions.
+- 16 tests unitaires sur la logique pure : `state-machine.test.ts` (transitions valides/invalides,
+  statuts terminaux), `quota.test.ts` (résolution de plan, calcul d'usage, cas illimité),
+  `rate-limit.test.ts` (fenêtre glissante, isolation par clé, expiration).
+- **Scope volontairement limité** : pas de tests d'intégration DB automatisés (pgTAP) ni de suite
+  e2e (Playwright) — chaque phase M0-M14 a été vérifiée manuellement en conditions réelles contre
+  le vrai projet Supabase (détaillé dans chaque section ci-dessus), ce qui constitue la couverture
+  réelle du MVP, mais ne remplace pas une suite automatisée rejouable en CI. Identifié comme item
+  de suite pour un futur cycle plutôt que simulé par des tests superficiels.
+
+### Documentation
+- `SECURITY.md`, `API.md`, `DEPLOYMENT.md`, `DECISIONS.md` rédigés (racine du dépôt).
+
+- **DoD vérifié en conditions réelles** : `npm run test` (16/16 verts), `tsc --noEmit`, `lint` et
+  `build` propres ; un vrai build de production (`next build && next start`) testé au navigateur
+  confirme que les en-têtes de sécurité (CSP incluse) n'empêchent pas l'hydratation React ni les
+  Server Actions (login testé avec succès sous CSP stricte). Parcours RGPD complet testé de bout en
+  bout avec un compte réel : export de données exécuté sans erreur, suppression de compte
+  effectuée, `deleted_at`/`banned_until` vérifiés en base, tentative de reconnexion post-suppression
+  correctement rejetée ("Identifiants invalides."). Bug réel découvert et corrigé pendant ce test :
+  `/compte-supprime` et `/confidentialite` étaient absents de l'allowlist du middleware
+  (`PUBLIC_PATHS`), ce qui redirigeait un visiteur déconnecté vers `/login` au lieu de la page
+  attendue — corrigé dans `src/lib/supabase/middleware.ts`. ✔️
 
 ## M16 — Performance, PWA, déploiement production
 - Core Web Vitals, cache, pagination, lazy loading.

@@ -1,4 +1,4 @@
-const LEGAL_PENDING = ["Confidentialité", "CGU"];
+const LEGAL_PENDING = ["CGU"];
 
 export function MarketingFooter() {
   return (
@@ -18,8 +18,11 @@ export function MarketingFooter() {
           <a href="#faq" className="text-sm text-fg-muted hover:text-fg">
             FAQ
           </a>
+          <a href="/confidentialite" className="text-sm text-fg-muted hover:text-fg">
+            Confidentialité
+          </a>
           {LEGAL_PENDING.map((label) => (
-            <span key={label} className="text-sm text-fg-muted/50" title="Page à venir (Phase M15)">
+            <span key={label} className="text-sm text-fg-muted/50" title="Page à venir">
               {label}
             </span>
           ))}

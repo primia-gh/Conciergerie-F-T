@@ -1,7 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/signup/check-email", "/robots.txt", "/sitemap.xml"];
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/signup",
+  "/signup/check-email",
+  "/confidentialite",
+  "/compte-supprime",
+  "/robots.txt",
+  "/sitemap.xml",
+];
 
 // Next.js suffixe les fichiers de convention (opengraph-image, icon...) d'un
 // hash en production : on autorise le préfixe plutôt qu'une correspondance exacte.

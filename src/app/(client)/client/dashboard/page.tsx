@@ -48,6 +48,9 @@ export default async function ClientDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <NotificationsBell notifications={notifications ?? []} currentPath="/client/dashboard" />
+          <Link href="/account" className="text-sm text-fg-muted hover:underline">
+            Mon compte
+          </Link>
           <SignOutButton />
         </div>
       </div>
