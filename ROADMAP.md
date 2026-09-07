@@ -1,6 +1,6 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0, M1 et M2 terminés (2026-09-07). Prochaine étape : M3 (design system).**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0, M1, M2 et M3 terminés (2026-09-07). Prochaine étape : M4 (landing page).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -44,10 +44,23 @@ Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée a
   les colonnes `*_token`/`*_change` à `''` et non `NULL`, sinon GoTrue échoue au login avec
   « Database error querying schema » (cause réelle : erreur de scan Go sur NULL).
 
-## M3 — Design system
-- Composants de base : Button, Input, Textarea, Select, Modal, Card, Badge, Avatar, Dropdown, Toast, Tabs, Table, Pagination, DatePicker, FileUpload.
-- Charte graphique originale (couleurs, typographie, spacing).
-- **DoD :** Storybook ou page `/design-system` interne listant tous les composants avec leurs variantes.
+## M3 — Design system ✅
+- Charte graphique originale définie dans `src/app/globals.css` : palette encre/papier chaude
+  + accent pin (vert profond), aucune valeur copiée d'un tiers. Typographie Fraunces (titres) +
+  Geist Sans (interface) via `next/font/google`.
+- 16 composants de base dans `src/components/ui/` : Button, Input, Textarea, Select, Modal, Card,
+  Badge, Avatar, Dropdown, Toast (+ Toaster/`useToast`), Tabs, Table, Pagination, DatePicker,
+  FileUpload, Label. Les primitives comportementales complexes (Modal, Dropdown, Tabs, Toast,
+  Select, Avatar) s'appuient sur Radix UI (non stylé, accessible) plutôt que d'être réinventées —
+  aucune identité visuelle empruntée, uniquement du comportement/accessibilité.
+- Composants métier (RequestCard, ProposalCard, BookingCard, ChatMessage) **volontairement non
+  créés** : ils seront construits avec leurs modules respectifs (M5, M7, M8, M9) plutôt qu'en
+  avance sans cas d'usage réel.
+- **DoD :** page interne `/design-system` (protégée par l'auth, `noindex`) listant tous les
+  composants avec leurs variantes ✔️. Vérifié en navigateur (couleurs, typographie, formulaires,
+  table, pagination interactive) ; le composant Modal a été vérifié par inspection DOM/CSSOM
+  directe (position, opacité, z-index) suite à un artefact de capture d'écran de l'outil de
+  preview sans rapport avec le code (page défilée en dehors de la zone capturée).
 
 ## M4 — Landing page
 - Sections définies au brief §19, textes 100% originaux.
