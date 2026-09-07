@@ -3,7 +3,7 @@
 Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 et M11 terminés (2026-09-07) ; M10 (paiements Stripe) sauté temporairement
 faute de compte Stripe — à reprendre dès que les clés API sont disponibles. Réserve de vérification
 documentée sur le temps réel de M7. Le cycle complet NEW → COMPLETED a été bouclé de bout en bout.
-Prochaine étape : M12 (administration).**
+Prochaine étape : M13 (partenaires).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -253,10 +253,26 @@ repris sur M12 en attendant ces informations. Le contenu ci-dessous reste le pla
   pas l'acteur). Le volet email du DoD (« déclenche un email ») reste non vérifiable sans clé
   Resend — comportement honnête confirmé par le log `NOT IMPLEMENTED`, pas par un envoi simulé.
 
-## M12 — Administration
-- Back-office : utilisateurs, concierges, demandes, propositions, réservations, catégories, paiements.
-- KPIs et graphiques de base (brief §17).
-- **DoD :** un admin voit la liste de toutes les demandes du système avec filtres par statut/catégorie/concierge.
+## M12 — Administration ✅ (scope volontairement resserré)
+- Nav admin minimale (`src/app/(admin)/layout.tsx`) : seulement Dashboard et Demandes — les autres
+  entrées du brief §22 (Clients, Concierges, Propositions, Réservations, Partenaires, Services,
+  Abonnements, Paiements, Factures, Analytics, Settings, Logs) n'ont pas de page réelle derrière
+  elles à ce stade ; les ajouter aurait créé des liens morts (interdit par le brief §34).
+- Dashboard (`src/app/(admin)/admin/dashboard/`) : 9 stat tiles (demandes totales/ouvertes/
+  terminées, clients + actifs, concierges, réservations, temps moyen de prise en charge calculé
+  depuis `request_status_history`) + 2 graphiques en barres horizontales (demandes par catégorie,
+  demandes par jour sur 14 jours). CA et satisfaction affichés `—` avec la raison exacte (Stripe
+  non fait, pas d'avis clients) plutôt que masqués ou inventés.
+- Graphiques construits en HTML/CSS simple (`HorizontalBarChart`) après consultation du skill
+  `dataviz` : une seule teinte (accent) pour une comparaison de grandeur entre catégories/jours —
+  pas une couleur par barre, pour éviter l'anti-pattern « rainbow chart » identifié par le skill.
+  Pas de librairie de graphiques ajoutée, inutile pour 2 graphiques à barres simples.
+- Page `/admin/requests` : liste de toutes les demandes (RLS admin déjà permissive depuis M1),
+  filtres statut/catégorie/concierge par formulaire GET natif (fonctionne sans JS).
+- **DoD vérifié en conditions réelles** avec les vraies données accumulées depuis M5-M11 (aucune
+  donnée fictive) : les KPIs correspondent exactement à l'état réel de la base (3 demandes, 2
+  ouvertes, 1 terminée, etc., vérifié manuellement), le filtre `status=COMPLETED` réduit
+  correctement la liste de 3 à 1 résultat. ✔️
 
 ## M13 — Partenaires (mini-CRM)
 - CRUD partenaires (statuts `active`/`inactive`/`pending`).
