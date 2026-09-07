@@ -50,23 +50,21 @@ export default async function ClientDashboardPage() {
           <ul className="mt-3 flex flex-col gap-3">
             {requests.map((request) => (
               <li key={request.id}>
-                <Card>
-                  <CardContent className="flex items-center justify-between pt-5">
-                    <div>
-                      <p className="font-medium text-fg">{request.title}</p>
-                      <p className="text-sm text-fg-muted">{request.categories?.name}</p>
-                    </div>
-                    <Badge variant="accent">{request.status}</Badge>
-                  </CardContent>
-                </Card>
+                <Link href={`/client/requests/${request.id}`}>
+                  <Card className="transition-colors hover:bg-bg-subtle">
+                    <CardContent className="flex items-center justify-between pt-5">
+                      <div>
+                        <p className="font-medium text-fg">{request.title}</p>
+                        <p className="text-sm text-fg-muted">{request.categories?.name}</p>
+                      </div>
+                      <Badge variant="accent">{request.status}</Badge>
+                    </CardContent>
+                  </Card>
+                </Link>
               </li>
             ))}
           </ul>
         )}
-      </div>
-
-      <div className="mt-6 rounded-lg border border-border bg-surface p-4 text-sm text-fg-muted">
-        Messages — NOT IMPLEMENTED (Phase M7)
       </div>
     </div>
   );

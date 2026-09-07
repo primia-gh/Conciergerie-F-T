@@ -11,8 +11,6 @@ import {
   type HistoryRow,
 } from "@/components/features/request-detail-card";
 import { MessageThread, type ThreadMessage } from "@/components/features/message-thread";
-import { AssignButton } from "./assign-button";
-import { InternalNotes, type NoteRow } from "./internal-notes";
 
 type RequestDetail = {
   id: string;
@@ -26,7 +24,6 @@ type RequestDetail = {
   budget_min: string | null;
   budget_max: string | null;
   preferences: string | null;
-  client_id: string;
   concierge_id: string | null;
   categories: { name: string } | null;
 };
@@ -35,12 +32,11 @@ type AttachmentRow = {
   id: string;
   file_name: string;
   storage_path: string;
-  size_bytes: number;
 };
 
-export default async function ConciergeRequestDetailPage({
+export default async function ClientRequestDetailPage({
   params,
-}: PageProps<"/concierge/requests/[id]">) {
+}: PageProps<"/client/requests/[id]">) {
   const { id } = await params;
   const profile = await getCurrentProfile();
   const supabase = await createClient();
@@ -48,7 +44,7 @@ export default async function ConciergeRequestDetailPage({
   const { data: request } = await supabase
     .from("requests")
     .select(
-      "id, title, description, status, priority, location_text, requested_date, requested_time, budget_min, budget_max, preferences, client_id, concierge_id, categories(name)",
+      "id, title, description, status, priority, location_text, requested_date, requested_time, budget_min, budget_max, preferences, concierge_id, categories(name)",
     )
     .eq("id", id)
     .maybeSingle<RequestDetail>();
@@ -57,7 +53,7 @@ export default async function ConciergeRequestDetailPage({
     notFound();
   }
 
-  const [{ data: history }, { data: attachments }, { data: notes }, { data: messages }, { data: clientProfile }] =
+  const [{ data: history }, { data: attachments }, { data: messages }, { data: conciergeProfile }] =
     await Promise.all([
       supabase
         .from("request_status_history")
@@ -67,16 +63,9 @@ export default async function ConciergeRequestDetailPage({
         .returns<HistoryRow[]>(),
       supabase
         .from("request_attachments")
-        .select("id, file_name, storage_path, size_bytes")
+        .select("id, file_name, storage_path")
         .eq("request_id", id)
         .returns<AttachmentRow[]>(),
-      supabase
-        .from("messages")
-        .select("id, body, created_at, sender_id")
-        .eq("request_id", id)
-        .eq("is_internal_note", true)
-        .order("created_at", { ascending: true })
-        .returns<NoteRow[]>(),
       supabase
         .from("messages")
         .select("id, body, created_at, sender_id")
@@ -84,11 +73,13 @@ export default async function ConciergeRequestDetailPage({
         .eq("is_internal_note", false)
         .order("created_at", { ascending: true })
         .returns<ThreadMessage[]>(),
-      supabase
-        .from("profiles")
-        .select("first_name, last_name")
-        .eq("id", request.client_id)
-        .maybeSingle<{ first_name: string | null; last_name: string | null }>(),
+      request.concierge_id
+        ? supabase
+            .from("profiles")
+            .select("first_name, last_name")
+            .eq("id", request.concierge_id)
+            .maybeSingle<{ first_name: string | null; last_name: string | null }>()
+        : Promise.resolve({ data: null }),
     ]);
 
   const attachmentLinks: AttachmentLink[] = await Promise.all(
@@ -100,12 +91,9 @@ export default async function ConciergeRequestDetailPage({
     }),
   );
 
-  const canAssign = request.status === "NEW" && request.concierge_id === null;
-  const isMine = request.concierge_id === profile?.id;
-
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
-      <Link href="/concierge/dashboard" className="text-sm text-fg-muted hover:text-fg">
+      <Link href="/client/dashboard" className="text-sm text-fg-muted hover:text-fg">
         ← Retour au dashboard
       </Link>
 
@@ -114,27 +102,23 @@ export default async function ConciergeRequestDetailPage({
           <p className="text-sm text-fg-muted">{request.categories?.name}</p>
           <h1 className="font-display text-2xl font-medium text-fg">{request.title}</h1>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="accent">{request.status}</Badge>
-          {canAssign && <AssignButton requestId={request.id} />}
-        </div>
+        <Badge variant="accent">{request.status}</Badge>
       </div>
 
-      {!canAssign && (
-        <p className="mt-2 text-sm text-fg-muted">
-          Client : {clientProfile?.first_name ?? "—"} {clientProfile?.last_name ?? ""}
-          {isMine && " (assignée à vous)"}
-        </p>
-      )}
+      <p className="mt-2 text-sm text-fg-muted">
+        {conciergeProfile
+          ? `Votre concierge : ${conciergeProfile.first_name ?? ""} ${conciergeProfile.last_name ?? ""}`
+          : "Concierge en cours d'attribution."}
+      </p>
 
       <RequestDetailCard request={request} />
       <AttachmentsCard attachments={attachmentLinks} />
       <HistoryCard history={history ?? []} />
 
-      {isMine && profile && (
+      {request.concierge_id && profile && (
         <div className="mt-6">
           <h2 className="text-sm font-medium uppercase tracking-wide text-fg-muted">
-            Messages avec le client
+            Messages avec votre concierge
           </h2>
           <div className="mt-3">
             <MessageThread
@@ -145,15 +129,6 @@ export default async function ConciergeRequestDetailPage({
           </div>
         </div>
       )}
-
-      <div className="mt-6">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-fg-muted">
-          Notes internes
-        </h2>
-        <div className="mt-3">
-          <InternalNotes requestId={request.id} notes={notes ?? []} />
-        </div>
-      </div>
     </div>
   );
 }

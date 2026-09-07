@@ -1,6 +1,6 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M6 terminés (2026-09-07). Prochaine étape : M7 (messagerie temps réel).**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M7 terminés avec une réserve de vérification documentée sur le temps réel (2026-09-07). Prochaine étape : M8 (propositions).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -136,11 +136,34 @@ Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée a
   à l'écran ; une note interne ajoutée est persistée et affichée avec horodatage. Confirmé par
   requête SQL directe (`is_internal_note: true`). ✔️
 
-## M7 — Messagerie temps réel
-- Messages client ↔ concierge sur une demande, via Supabase Realtime.
-- Séparation messages visibles / notes internes.
-- Indicateurs lu/non lu, horodatage.
-- **DoD :** un message envoyé par le client apparaît en temps réel côté concierge sans rechargement de page (testé manuellement + test d'intégration sur l'API).
+## M7 — Messagerie temps réel ⚠️ (implémenté, réserve de vérification documentée)
+- Composant partagé `MessageThread` (`src/components/features/message-thread.tsx`), utilisé à la
+  fois par la page de détail client (nouvellement créée, `src/app/(client)/client/requests/[id]/`)
+  et concierge — pas deux implémentations séparées.
+- Souscription Supabase Realtime (`postgres_changes` sur `messages`, filtrée par `request_id`) ;
+  activation de la table dans la publication `supabase_realtime` (migration `0007`, absente par
+  défaut sur un nouveau projet Supabase — corrigé avant tout test).
+- Séparation stricte messages visibles (`is_internal_note=false`) / notes internes déjà garantie
+  par les policies RLS de M1, réutilisées telles quelles.
+- Indicateurs lu/non lu : `markThreadRead` marque comme lus les messages reçus (pas envoyés par
+  soi-même) à l'ouverture du fil — vérifié en base (`read_at` correctement posé côté destinataire
+  uniquement, pas côté expéditeur).
+- **Ce qui est vérifié en conditions réelles :** l'envoi d'un message via le vrai formulaire
+  fonctionne (Server Action `sendMessage`), la lecture respecte la séparation client/concierge
+  visible vs notes internes, le marquage lu/non lu est correct en base.
+- **Ce qui n'a PAS pu être vérifié, et pourquoi (ne pas ignorer cette limite en poursuivant) :**
+  le push en temps réel sans rechargement n'a pas pu être observé dans cet environnement — le
+  navigateur de prévisualisation utilisé pour les tests bloque les connexions WebSocket sortantes
+  (confirmé par un test direct : une connexion `wss://` brute vers le projet Supabase échoue
+  immédiatement, de la même façon que le WebSocket HMR de Next.js échoue dans ce même bac à sable).
+  Un message inséré directement en base pendant qu'un onglet concierge était ouvert sur la demande
+  n'est apparu qu'après rechargement manuel, jamais spontanément. Le code suit fidèlement l'API
+  documentée de Supabase Realtime et la donnée est correcte une fois rechargée — mais le
+  comportement "sans rechargement", qui est la substance même du DoD de cette phase, reste à
+  confirmer dans un environnement avec accès réseau WebSocket réel (poste local du porteur de
+  projet, ou déploiement Vercel en M16). Ne pas considérer cette phase comme définitivement actée
+  tant que ce point précis n'a pas été observé par un humain ou un test automatisé hors de ce
+  bac à sable.
 
 ## M8 — Propositions
 - Création de plusieurs options par le concierge (nom, description, photos, prix, adresse, conditions).
