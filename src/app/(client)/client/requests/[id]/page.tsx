@@ -11,6 +11,9 @@ import {
   type HistoryRow,
 } from "@/components/features/request-detail-card";
 import { MessageThread, type ThreadMessage } from "@/components/features/message-thread";
+import { ProposalComparison, type OptionForComparison } from "./proposal-comparison";
+
+type ProposalRow = { id: string; status: string; created_at: string };
 
 type RequestDetail = {
   id: string;
@@ -91,6 +94,26 @@ export default async function ClientRequestDetailPage({
     }),
   );
 
+  // RLS (`proposals_select`) ne renvoie déjà que les propositions envoyées,
+  // acceptées ou refusées — jamais un brouillon en cours de préparation.
+  const { data: proposals } = await supabase
+    .from("proposals")
+    .select("id, status, created_at")
+    .eq("request_id", id)
+    .order("created_at", { ascending: false })
+    .returns<ProposalRow[]>();
+
+  const proposalsWithOptions = await Promise.all(
+    (proposals ?? []).map(async (proposal) => {
+      const { data: options } = await supabase
+        .from("proposal_options")
+        .select("id, name, description, price, address, conditions, advantages, is_selected")
+        .eq("proposal_id", proposal.id)
+        .returns<OptionForComparison[]>();
+      return { ...proposal, options: options ?? [] };
+    }),
+  );
+
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
       <Link href="/client/dashboard" className="text-sm text-fg-muted hover:text-fg">
@@ -114,6 +137,25 @@ export default async function ClientRequestDetailPage({
       <RequestDetailCard request={request} />
       <AttachmentsCard attachments={attachmentLinks} />
       <HistoryCard history={history ?? []} />
+
+      {proposalsWithOptions.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-fg-muted">
+            Propositions reçues
+          </h2>
+          <div className="mt-3 flex flex-col gap-6">
+            {proposalsWithOptions.map((proposal) => (
+              <ProposalComparison
+                key={proposal.id}
+                proposalId={proposal.id}
+                requestId={request.id}
+                status={proposal.status}
+                options={proposal.options}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {request.concierge_id && profile && (
         <div className="mt-6">

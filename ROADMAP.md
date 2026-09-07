@@ -1,6 +1,6 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M7 terminés avec une réserve de vérification documentée sur le temps réel (2026-09-07). Prochaine étape : M8 (propositions).**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M8 terminés, avec une réserve de vérification documentée sur le temps réel de M7 (2026-09-07). Prochaine étape : M9 (réservations).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -165,10 +165,29 @@ Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée a
   tant que ce point précis n'a pas été observé par un humain ou un test automatisé hors de ce
   bac à sable.
 
-## M8 — Propositions
-- Création de plusieurs options par le concierge (nom, description, photos, prix, adresse, conditions).
-- Envoi au client, comparaison, acceptation/refus.
-- **DoD :** un client compare 2 options et en accepte une, ce qui fait passer la demande en `ACCEPTED`.
+## M8 — Propositions ✅
+- Création de plusieurs options par le concierge (nom, description, prix, adresse, conditions,
+  avantages, photos en URLs — pas d'upload dédié, cohérent avec le choix de ne pas construire de
+  pipeline média supplémentaire pour un champ non bloquant du DoD).
+  `src/server/proposals/actions.ts`, éditeur dédié
+  `src/app/(concierge)/concierge/requests/[id]/proposals/[proposalId]/`.
+- Un seul geste utilisateur (« Créer une proposition ») traverse plusieurs statuts intermédiaires
+  du brief (`ASSIGNED → IN_PROGRESS → RESEARCHING → PROPOSAL_DRAFT`, ou `REJECTED → RESEARCHING →
+  PROPOSAL_DRAFT` en cas de relance) via `applyTransitionChain`, qui journalise chaque saut
+  individuellement dans `request_status_history` — fidèle à la machine à états sans multiplier les
+  clics côté concierge.
+- Envoi au client (`sendProposal`, `PROPOSAL_DRAFT → PROPOSAL_SENT → WAITING_CLIENT`), bloqué tant
+  qu'aucune option n'existe.
+- Comparaison client (`src/app/(client)/client/requests/[id]/proposal-comparison.tsx`) : options
+  affichées côte à côte, choix d'une option (`WAITING_CLIENT → ACCEPTED`) ou refus global
+  (`→ REJECTED`, avec le commentaire de refus renvoyé comme message plutôt que perdu — réutilise
+  M7 au lieu d'ajouter un champ dédié).
+- **DoD vérifié en conditions réelles** (navigateur + Supabase live, comptes `dev-concierge` /
+  `dev-client`, sur la demande créée en M5) : le concierge crée une proposition avec deux options
+  réelles (« Le Jardin Secret » 85€, « Bistrot des Amis » 55€), l'envoie ; le client voit les deux
+  options côte à côte et en choisit une. Confirmé par requête SQL directe : `requests.status =
+  'ACCEPTED'`, `proposals.status = 'accepted'`, l'option choisie a `is_selected = true`, l'autre
+  `false`. Historique complet des 8 transitions vérifié à l'écran. ✔️
 
 ## M9 — Réservations (Booking)
 - Création automatique d'un `Booking` à l'acceptation d'une proposition.

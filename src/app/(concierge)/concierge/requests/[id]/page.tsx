@@ -11,8 +11,14 @@ import {
   type HistoryRow,
 } from "@/components/features/request-detail-card";
 import { MessageThread, type ThreadMessage } from "@/components/features/message-thread";
+import { Card, CardContent } from "@/components/ui/card";
 import { AssignButton } from "./assign-button";
 import { InternalNotes, type NoteRow } from "./internal-notes";
+import { StartProposalButton } from "./start-proposal-button";
+
+const STARTABLE_STATUSES = new Set(["ASSIGNED", "IN_PROGRESS", "RESEARCHING", "REJECTED"]);
+
+type ProposalRow = { id: string; status: string; created_at: string };
 
 type RequestDetail = {
   id: string;
@@ -57,7 +63,7 @@ export default async function ConciergeRequestDetailPage({
     notFound();
   }
 
-  const [{ data: history }, { data: attachments }, { data: notes }, { data: messages }, { data: clientProfile }] =
+  const [{ data: history }, { data: attachments }, { data: notes }, { data: messages }, { data: clientProfile }, { data: proposals }] =
     await Promise.all([
       supabase
         .from("request_status_history")
@@ -89,6 +95,12 @@ export default async function ConciergeRequestDetailPage({
         .select("first_name, last_name")
         .eq("id", request.client_id)
         .maybeSingle<{ first_name: string | null; last_name: string | null }>(),
+      supabase
+        .from("proposals")
+        .select("id, status, created_at")
+        .eq("request_id", id)
+        .order("created_at", { ascending: false })
+        .returns<ProposalRow[]>(),
     ]);
 
   const attachmentLinks: AttachmentLink[] = await Promise.all(
@@ -130,6 +142,47 @@ export default async function ConciergeRequestDetailPage({
       <RequestDetailCard request={request} />
       <AttachmentsCard attachments={attachmentLinks} />
       <HistoryCard history={history ?? []} />
+
+      {isMine && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-fg-muted">
+              Propositions
+            </h2>
+            {STARTABLE_STATUSES.has(request.status) && (
+              <StartProposalButton
+                requestId={request.id}
+                label={request.status === "REJECTED" ? "Relancer une proposition" : "Créer une proposition"}
+              />
+            )}
+          </div>
+          <div className="mt-3">
+            {!proposals || proposals.length === 0 ? (
+              <p className="text-sm text-fg-muted">Aucune proposition pour l&apos;instant.</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {proposals.map((proposal) => (
+                  <li key={proposal.id}>
+                    <Link href={`/concierge/requests/${request.id}/proposals/${proposal.id}`}>
+                      <Card className="transition-colors hover:bg-bg-subtle">
+                        <CardContent className="flex items-center justify-between pt-5">
+                          <span className="text-sm text-fg">
+                            Proposition du{" "}
+                            {new Date(proposal.created_at).toLocaleDateString("fr-FR")}
+                          </span>
+                          <Badge variant={proposal.status === "draft" ? "neutral" : "accent"}>
+                            {proposal.status}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
 
       {isMine && profile && (
         <div className="mt-6">
