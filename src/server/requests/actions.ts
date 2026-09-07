@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { assertRole } from "@/server/auth/guards";
+import { assertValidTransition } from "@/server/requests/state-machine";
 
 const createRequestSchema = z.object({
   categoryId: z.string().uuid("Catégorie invalide."),
@@ -108,4 +109,46 @@ export async function createRequest(formData: FormData): Promise<CreateRequestSt
 
   revalidatePath("/client/dashboard");
   redirect("/client/dashboard");
+}
+
+export type AssignRequestState = { error: string | null };
+
+/**
+ * Prise en charge d'une demande NEW par un concierge. La clause `.eq("status", "NEW")
+ * .is("concierge_id", null)` sert de verrou optimiste : si deux concierges cliquent
+ * en même temps, un seul UPDATE affecte réellement une ligne.
+ */
+export async function assignRequest(requestId: string): Promise<AssignRequestState> {
+  const profile = await assertRole("concierge");
+  assertValidTransition("NEW", "ASSIGNED");
+
+  const supabase = await createClient();
+
+  const { data: updated, error } = await supabase
+    .from("requests")
+    .update({ concierge_id: profile.id, status: "ASSIGNED" })
+    .eq("id", requestId)
+    .eq("status", "NEW")
+    .is("concierge_id", null)
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (error) {
+    return { error: "Impossible de prendre en charge cette demande." };
+  }
+  if (!updated) {
+    return { error: "Cette demande a déjà été prise en charge par quelqu'un d'autre." };
+  }
+
+  await supabase.from("request_status_history").insert({
+    request_id: requestId,
+    from_status: "NEW",
+    to_status: "ASSIGNED",
+    changed_by: profile.id,
+    note: "Prise en charge par le concierge.",
+  });
+
+  revalidatePath("/concierge/dashboard");
+  revalidatePath(`/concierge/requests/${requestId}`);
+  return { error: null };
 }

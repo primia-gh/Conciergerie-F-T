@@ -1,6 +1,6 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M5 terminés (2026-09-07). Prochaine étape : M6 (dashboard concierge).**
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M6 terminés (2026-09-07). Prochaine étape : M7 (messagerie temps réel).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -115,11 +115,26 @@ Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée a
   le bucket et les policies RLS ont été vérifiés par SQL direct, et le code d'upload suit l'API
   standard `supabase.storage.upload()`. À confirmer manuellement ou via test automatisé en M15.
 
-## M6 — Espace concierge : dashboard opérationnel
-- Liste des demandes (nouvelles, urgentes, en cours, en attente client).
-- Prise en charge d'une demande (`NEW` → `ASSIGNED`).
-- Notes internes.
-- **DoD :** un concierge prend en charge une demande créée en M5, le statut et l'historique se mettent à jour.
+## M6 — Espace concierge : dashboard opérationnel ✅
+- Dashboard concierge (`src/app/(concierge)/concierge/dashboard/`) : section « Nouvelles demandes »
+  (statut `NEW`, non assignées, visibles de tous les concierges) et « Mes demandes » (assignées à
+  l'utilisateur courant).
+- Page de détail d'une demande (`src/app/(concierge)/concierge/requests/[id]/`), conçue pour être
+  étendue en M7 plutôt que reconstruite : détails, pièces jointes (URLs signées, 10 min), historique
+  complet des transitions, notes internes.
+- Prise en charge (`assignRequest` dans `src/server/requests/actions.ts`) : transition `NEW` →
+  `ASSIGNED` via `assertValidTransition`, verrou optimiste (`WHERE status='NEW' AND concierge_id
+  IS NULL`) pour éviter qu'un même NEW soit pris par deux concierges simultanément.
+- Notes internes (`src/server/messages/actions.ts`, `addInternalNote`) : réutilise la table
+  `messages` (`is_internal_note = true`) déjà modélisée en M1, pas de nouvelle table.
+- Comportement RLS observé et assumé : un concierge ne voit ni le nom du client, ni l'historique
+  d'une demande `NEW` tant qu'il ne l'a pas prise en charge (policies M1 déjà strictes) — cohérent
+  avec le principe de moindre exposition, les deux redeviennent visibles après assignation.
+- **DoD vérifié en conditions réelles** (navigateur + Supabase live, compte `dev-concierge`) : la
+  demande créée en M5 apparaît dans « Nouvelles demandes », la prise en charge fait passer le
+  statut à `ASSIGNED`, révèle le nom du client, ajoute une entrée d'historique visible immédiatement
+  à l'écran ; une note interne ajoutée est persistée et affichée avec horodatage. Confirmé par
+  requête SQL directe (`is_internal_note: true`). ✔️
 
 ## M7 — Messagerie temps réel
 - Messages client ↔ concierge sur une demande, via Supabase Realtime.
