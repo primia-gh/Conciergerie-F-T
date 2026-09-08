@@ -8,6 +8,14 @@ toute exécution.
 
 ## 1. Prérequis
 
+- **Un dépôt distant (GitHub/GitLab/Bitbucket).** Ce dépôt est actuellement **local uniquement**
+  (`git remote -v` ne renvoie rien) — Vercel se connecte à un dépôt distant, pas à une machine
+  locale. Avant de créer le projet Vercel : créer un dépôt (vide, sans README/`.gitignore` généré
+  automatiquement pour éviter un conflit avec l'historique existant) sur GitHub par exemple, puis :
+  ```bash
+  git remote add origin <url-du-depot>
+  git push -u origin master
+  ```
 - Un compte Vercel (ou toute plateforme supportant Next.js 16 App Router + Server Actions +
   Turbopack).
 - Un **second** projet Supabase dédié à la production (`concierge-app-prod`), distinct du projet de
