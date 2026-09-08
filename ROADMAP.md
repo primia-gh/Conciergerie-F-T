@@ -4,9 +4,10 @@ Le brief initial contient deux découpages en phases qui se recoupent (§4 « m�
 faute de compte Stripe — à reprendre dès que les clés API sont disponibles. Réserve de vérification
 documentée sur le temps réel de M7. Le cycle complet NEW → COMPLETED a été bouclé de bout en bout.
 Sécurité durcie (RLS, en-têtes, rate limiting) et RGPD fonctionnel de bout en bout (export +
-suppression de compte) vérifiés en conditions réelles (M15). Seule reste M16 (déploiement), qui ne
-sera entamée qu'avec confirmation explicite de l'utilisateur (action difficilement réversible
-nécessitant un vrai compte Vercel).**
+suppression de compte) vérifiés en conditions réelles (M15). M16 en cours : performance
+(pagination, garde-fous de requête, loading states) et PWA (manifeste + icônes) terminés et
+vérifiés ; le déploiement production reste NOT IMPLEMENTED, en attente des informations d'accès
+Vercel de l'utilisateur (action difficilement réversible sur un système externe).**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -377,11 +378,56 @@ repris sur M12 en attendant ces informations. Le contenu ci-dessous reste le pla
   (`PUBLIC_PATHS`), ce qui redirigeait un visiteur déconnecté vers `/login` au lieu de la page
   attendue — corrigé dans `src/lib/supabase/middleware.ts`. ✔️
 
-## M16 — Performance, PWA, déploiement production
-- Core Web Vitals, cache, pagination, lazy loading.
-- Manifest PWA installable.
-- Déploiement production Vercel + monitoring.
-- **DoD :** l'app est installable en PWA, déployée en production, avec un pipeline CI/CD qui bloque le merge si les tests échouent.
+## M16 — Performance, PWA, déploiement production 🚧 (performance + PWA faits, déploiement en attente)
+
+### Performance
+- Pagination réelle sur `/admin/requests` (seule vue listant potentiellement l'intégralité de
+  l'historique de la plateforme) : `PAGE_SIZE=20`, `.range()` + `count: "exact"`, liens
+  Précédent/Suivant préservant les filtres actifs — testé en conditions réelles avec 28 lignes
+  injectées temporairement (page 1/2 → 20 résultats, page 2/2 → 8, bouton "Suivant" un vrai
+  `<button disabled>` en fin de liste, jamais un lien désactivé factice) puis nettoyées.
+- Garde-fous `.limit()` ajoutés aux listes qui n'en avaient pas (dashboard client, dashboard
+  concierge ×2, liste partenaires admin) — ce sont des vues "aperçu récent", pas des vues de
+  parcours exhaustif, un plafond suffit sans UI de pagination dédiée.
+- `loading.tsx` ajouté aux 4 espaces de rôle (`client`, `concierge`, `admin`, `partner`) : Next.js
+  peut désormais streamer un état de chargement pendant que le Server Component récupère ses
+  données, au lieu de bloquer tout le rendu.
+- Polices déjà auto-hébergées via `next/font/google` depuis M0 (pas d'appel runtime vers
+  `fonts.googleapis.com`, zéro CLS lié aux polices).
+- Pas d'optimisation d'image nécessaire à ce stade : l'application ne rend actuellement aucune
+  image (`<img>`/`next/image`) nulle part — les photos de proposition (`proposal_options.photos`,
+  JSONB) existent en base mais leur affichage n'est pas encore implémenté (hors scope M1-M15).
+
+### PWA
+- `src/app/manifest.ts` : manifeste Web App (nom, icônes, `theme_color`, `display: standalone`).
+  `start_url: "/"` fonctionne pour les 4 rôles car `/` redirige désormais un utilisateur déjà
+  connecté vers son propre dashboard (`src/app/(marketing)/page.tsx`) plutôt que d'afficher la
+  page marketing dans tous les cas.
+- Icônes générées dynamiquement (`next/og`, identité visuelle originale — même palette que
+  `opengraph-image.tsx`, jamais empruntée à un tiers) : `icon.tsx` (favicon 32×32),
+  `apple-icon.tsx` (180×180), et une route paramétrée `icons/[size]/route.tsx` pour les tailles du
+  manifeste (192, 512, 512 maskable avec zone de sécurité réduite).
+- **Bug réel trouvé et corrigé pendant la vérification** : `/manifest.webmanifest` était absent de
+  l'allowlist du middleware et redirigeait vers `/login` — un navigateur/OS ne peut pas détecter
+  une PWA installable si son manifeste n'est pas accessible sans authentification. Corrigé dans
+  `src/lib/supabase/middleware.ts`.
+- **DoD vérifié en conditions réelles** : `/manifest.webmanifest` renvoie un JSON valide et
+  accessible sans session ; `/icons/512` et `/icons/512?maskable=1` rendus et vérifiés visuellement
+  au navigateur (logo correctement centré, marge de sécurité respectée en mode maskable). Test
+  d'installation PWA complet (bannière "Ajouter à l'écran d'accueil", Lighthouse PWA audit) non
+  effectué dans cet environnement sandboxé (pas de vrai appareil mobile/Chrome complet
+  disponible) — à vérifier manuellement par l'utilisateur avant le lancement réel, ou lors du
+  déploiement (M16 suite).
+
+### Déploiement production — **NOT IMPLEMENTED, en attente d'informations**
+Nécessite un compte Vercel (et éventuellement un second projet Supabase de production), voir
+DEPLOYMENT.md pour le runbook complet. Action difficilement réversible affectant un système
+externe : ne sera exécutée qu'avec la participation directe de l'utilisateur (connexion à son
+compte Vercel, choix du domaine) — je ne peux ni créer de compte en son nom, ni me connecter à sa
+place à un service OAuth tiers.
+
+- **DoD (performance + PWA) :** ✔️ — voir ci-dessus.
+- **DoD (déploiement) :** en attente.
 
 ## Post-MVP (explicitement hors scope initial)
 - IA (classification automatique, résumés, assistant concierge) — ajoutée seulement après que le cœur métier (M0-M16) fonctionne réellement en production, jamais en remplacement d'une décision humaine.

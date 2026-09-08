@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getCurrentProfile } from "@/server/auth/session";
+import { dashboardPathForRole } from "@/server/auth/guards";
 import { MarketingHeader } from "./_components/header";
 import { Hero } from "./_components/hero";
 import { HowItWorks } from "./_components/how-it-works";
@@ -22,7 +25,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function MarketingHomePage() {
+export default async function MarketingHomePage() {
+  // Un utilisateur déjà connecté qui atterrit sur "/" (ex. raccourci PWA,
+  // voir manifest.ts) est envoyé directement à son espace plutôt que de
+  // revoir la page marketing.
+  const profile = await getCurrentProfile();
+  if (profile) {
+    redirect(dashboardPathForRole(profile.role));
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <MarketingHeader />

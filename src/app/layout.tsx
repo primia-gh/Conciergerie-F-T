@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastContextProvider } from "@/hooks/use-toast";
@@ -26,7 +26,16 @@ export const metadata: Metadata = {
     default: "Conciergerie Premium",
     template: "%s — Conciergerie Premium",
   },
-  description: "Plateforme de conciergerie premium — projet en construction.",
+  description:
+    "Conciergerie privée : décrivez votre besoin, un concierge dédié recherche et vous propose des solutions prêtes à valider.",
+  appleWebApp: {
+    title: "Conciergerie",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1f4b3f",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

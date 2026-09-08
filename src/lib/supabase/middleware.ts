@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   "/compte-supprime",
   "/robots.txt",
   "/sitemap.xml",
+  "/manifest.webmanifest",
 ];
 
 // Next.js suffixe les fichiers de convention (opengraph-image, icon...) d'un

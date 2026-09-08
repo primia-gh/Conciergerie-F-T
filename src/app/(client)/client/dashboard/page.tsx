@@ -27,6 +27,7 @@ export default async function ClientDashboardPage() {
       .from("requests")
       .select("id, title, status, created_at, categories(name)")
       .order("created_at", { ascending: false })
+      .limit(50)
       .returns<RequestRow[]>(),
     supabase
       .from("notifications")

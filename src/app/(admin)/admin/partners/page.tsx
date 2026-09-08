@@ -19,6 +19,7 @@ export default async function AdminPartnersPage() {
     .from("partners")
     .select("id, name, status, email, categories(name)")
     .order("name")
+    .limit(100)
     .returns<PartnerRow[]>();
 
   return (

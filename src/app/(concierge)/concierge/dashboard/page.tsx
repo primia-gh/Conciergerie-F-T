@@ -57,12 +57,14 @@ export default async function ConciergeDashboardPage() {
       .is("concierge_id", null)
       .eq("status", "NEW")
       .order("created_at", { ascending: true })
+      .limit(50)
       .returns<RequestRow[]>(),
     supabase
       .from("requests")
       .select("id, title, status, priority, created_at, categories(name)")
       .eq("concierge_id", profile?.id ?? "")
       .order("created_at", { ascending: false })
+      .limit(50)
       .returns<RequestRow[]>(),
     supabase
       .from("notifications")
