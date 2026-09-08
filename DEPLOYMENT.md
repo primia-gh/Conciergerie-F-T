@@ -1,21 +1,16 @@
 # DEPLOYMENT.md — Déploiement production
 
-**Statut actuel : NOT IMPLEMENTED.** Ce document est un runbook prêt à l'emploi pour la Phase M16
-(voir ROADMAP.md), volontairement **non exécuté** — un déploiement production est une action
-difficilement réversible (domaine public, vrai compte Vercel, potentiellement un vrai projet
-Supabase de production) qui requiert une confirmation explicite et séparée de l'utilisateur avant
-toute exécution.
+**Statut actuel : ✅ Déployé.** Application en production sur
+`https://conciergerie-f-t.vercel.app`, connectée au projet Supabase dédié `concierge-app-prod`.
+Voir ROADMAP.md (section M16) pour le détail de ce qui a été vérifié en conditions réelles sur le
+domaine de production. Ce document reste le runbook de référence pour tout futur redéploiement,
+rollback, ou reproduction de l'infrastructure (ex. un environnement de staging).
 
 ## 1. Prérequis
 
-- **Un dépôt distant (GitHub/GitLab/Bitbucket).** Ce dépôt est actuellement **local uniquement**
-  (`git remote -v` ne renvoie rien) — Vercel se connecte à un dépôt distant, pas à une machine
-  locale. Avant de créer le projet Vercel : créer un dépôt (vide, sans README/`.gitignore` généré
-  automatiquement pour éviter un conflit avec l'historique existant) sur GitHub par exemple, puis :
-  ```bash
-  git remote add origin <url-du-depot>
-  git push -u origin master
-  ```
+- **Un dépôt distant (GitHub/GitLab/Bitbucket).** ✅ Fait — poussé sur
+  [github.com/primia-gh/Conciergerie-F-T](https://github.com/primia-gh/Conciergerie-F-T)
+  (branche `master`).
 - Un compte Vercel (ou toute plateforme supportant Next.js 16 App Router + Server Actions +
   Turbopack).
 - Un **second** projet Supabase dédié à la production (`concierge-app-prod`), distinct du projet de
@@ -35,7 +30,9 @@ toute exécution.
    `seed-dev-accounts.sql` (comptes de test avec mot de passe connu, strictement dev).
 4. Dans Authentication → URL Configuration : renseigner l'URL de production comme Site URL et
    Redirect URL.
-5. Dans Authentication → Policies : activer "Leaked Password Protection" (voir SECURITY.md §10).
+5. Dans Authentication → Sign In / Providers → Email : activer "Leaked Password Protection" si le
+   projet est sur un palier Supabase Pro (indisponible sur le palier gratuit — voir SECURITY.md §10,
+   non bloquant).
 6. Vérifier `get_advisors` (sécurité + performance) sur le projet de production avant mise en ligne.
 
 ## 3. Variables d'environnement (Vercel)

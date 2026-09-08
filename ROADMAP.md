@@ -1,13 +1,13 @@
 # ROADMAP.md — Séquence de développement du MVP
 
-Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 et M11 à M15 terminés (2026-09-07) ; M10 (paiements Stripe) sauté temporairement
+Le brief initial contient deux découpages en phases qui se recoupent (§4 « méthode de travail » en 15 phases, §38 « ordre de développement » en 20 étapes). Pour éviter toute ambiguïté, ce document fait autorité et fusionne les deux en une séquence unique. **Statut actuel : M0 à M9 et M11 à M16 terminés (2026-09-08) ; M10 (paiements Stripe) sauté temporairement
 faute de compte Stripe — à reprendre dès que les clés API sont disponibles. Réserve de vérification
 documentée sur le temps réel de M7. Le cycle complet NEW → COMPLETED a été bouclé de bout en bout.
 Sécurité durcie (RLS, en-têtes, rate limiting) et RGPD fonctionnel de bout en bout (export +
-suppression de compte) vérifiés en conditions réelles (M15). M16 en cours : performance
-(pagination, garde-fous de requête, loading states) et PWA (manifeste + icônes) terminés et
-vérifiés ; le déploiement production reste NOT IMPLEMENTED, en attente des informations d'accès
-Vercel de l'utilisateur (action difficilement réversible sur un système externe).**
+suppression de compte) vérifiés en conditions réelles (M15). L'application est en production sur
+`https://conciergerie-f-t.vercel.app`, connectée à un projet Supabase de production dédié
+(`concierge-app-prod`), vérifiée de bout en bout sur le domaine réel (M16). Il ne reste que M10
+(Stripe) à reprendre dès que l'utilisateur dispose des clés API.**
 
 Règle de progression (rappel du brief §4 et §34) : une phase n'est marquée acquise que si elle est **implémentée, testée, corrigée et documentée** — jamais déclarée terminée sur la base d'un code non fonctionnel, d'un bouton factice ou d'un TODO caché.
 
@@ -378,7 +378,7 @@ repris sur M12 en attendant ces informations. Le contenu ci-dessous reste le pla
   (`PUBLIC_PATHS`), ce qui redirigeait un visiteur déconnecté vers `/login` au lieu de la page
   attendue — corrigé dans `src/lib/supabase/middleware.ts`. ✔️
 
-## M16 — Performance, PWA, déploiement production 🚧 (performance + PWA faits, déploiement en attente)
+## M16 — Performance, PWA, déploiement production ✅
 
 ### Performance
 - Pagination réelle sur `/admin/requests` (seule vue listant potentiellement l'intégralité de
@@ -419,15 +419,48 @@ repris sur M12 en attendant ces informations. Le contenu ci-dessous reste le pla
   disponible) — à vérifier manuellement par l'utilisateur avant le lancement réel, ou lors du
   déploiement (M16 suite).
 
-### Déploiement production — **NOT IMPLEMENTED, en attente d'informations**
-Nécessite un compte Vercel (et éventuellement un second projet Supabase de production), voir
-DEPLOYMENT.md pour le runbook complet. Action difficilement réversible affectant un système
-externe : ne sera exécutée qu'avec la participation directe de l'utilisateur (connexion à son
-compte Vercel, choix du domaine) — je ne peux ni créer de compte en son nom, ni me connecter à sa
-place à un service OAuth tiers.
+### Déploiement production ✅
+Exécuté avec la participation directe de l'utilisateur (création du dépôt GitHub et du projet
+Vercel, actions OAuth que je ne peux pas faire à sa place) ; j'ai pris en charge la partie
+infrastructure Supabase et la vérification.
+
+- **Dépôt distant** : poussé sur
+  [github.com/primia-gh/Conciergerie-F-T](https://github.com/primia-gh/Conciergerie-F-T)
+  (branche `master`).
+- **Vercel** : projet connecté au dépôt, déployé en production sur
+  `https://conciergerie-f-t.vercel.app`. Un premier échec de build
+  (« No Output Directory named "public" found ») venait du Framework Preset réglé sur "Other" au
+  lieu de "Next.js" côté Vercel — corrigé par l'utilisateur, pas un problème de code.
+- **Supabase production** : nouveau projet dédié `concierge-app-prod` (`bavzdsuhlmmnomvnkslt`,
+  eu-west-3, palier gratuit, coût confirmé à 0 $/mois avant création) — **jamais** le projet de dev
+  réutilisé. Les 15 migrations (`0000` à `0014`) rejouées dans l'ordre exact, catégories et plans
+  réensemencés (`seed.sql`), **aucun compte de test** créé (le script `seed-dev-accounts.sql` reste
+  strictement réservé au dev). Advisor sécurité vérifié après coup : identique au dev (seul le
+  `WARN` déjà accepté sur `current_app_role()` subsiste).
+- **Variables d'environnement Vercel** : `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  (projet prod) et `NEXT_PUBLIC_APP_URL` configurées en Production ; recommandation donnée à
+  l'utilisateur de séparer Preview vers le projet dev plutôt que de partager les identifiants prod
+  entre les deux environnements.
+- **Supabase Auth (prod)** : Site URL / Redirect URLs pointés vers l'URL Vercel réelle (fait par
+  l'utilisateur). "Leaked Password Protection" identifiée comme **réservée au palier Supabase Pro**
+  — indisponible sur le palier gratuit actuellement utilisé, documenté comme limitation connue et
+  non bloquante (SECURITY.md §10) plutôt que contournée.
+- **DoD vérifié en conditions réelles sur le domaine de production** : en-têtes de sécurité présents
+  (`curl -I`), CSP pointant correctement vers le projet Supabase **production** (confirmant le bon
+  branchement des variables d'environnement) ; `/`, `/login`, `/confidentialite`,
+  `/compte-supprime`, `/manifest.webmanifest` tous accessibles (200) ; `/client/dashboard` sans
+  session redirige bien (307). Connexion réelle testée avec un compte temporaire créé et supprimé
+  pour l'occasion (même méthode que les vérifications précédentes) : redirection post-login vers le
+  dashboard, contenu personnalisé correctement rendu côté serveur ("Bonjour Verif", "Forfait Free",
+  liste de demandes vide). L'hydratation client (interactivité des boutons) n'a pas pu être vérifiée
+  au navigateur dans cet environnement sandboxé (les chunks JS de l'app y sont bloqués par un
+  mécanisme du bac à sable, confirmé sans rapport avec le déploiement par une requête directe au
+  serveur renvoyant 200 sur ces mêmes fichiers) — la même vérification a déjà réussi en local sur un
+  vrai build de production (`next build && next start`, voir Phase M15) avec cette CSP exacte, donc
+  le risque résiduel est jugé faible plutôt que ré-ouvert ici sans nouvel élément.
 
 - **DoD (performance + PWA) :** ✔️ — voir ci-dessus.
-- **DoD (déploiement) :** en attente.
+- **DoD (déploiement) :** ✔️ — voir ci-dessus.
 
 ## Post-MVP (explicitement hors scope initial)
 - IA (classification automatique, résumés, assistant concierge) — ajoutée seulement après que le cœur métier (M0-M16) fonctionne réellement en production, jamais en remplacement d'une décision humaine.

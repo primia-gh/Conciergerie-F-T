@@ -130,8 +130,11 @@ compatible.
 
 Liste consolidée des compromis MVP explicitement documentés ci-dessus, à ne pas perdre de vue :
 
-- [ ] Activer "Leaked Password Protection" dans le dashboard Supabase Auth (réglage de compte,
-      non pilotable par migration SQL).
+- [ ] Activer "Leaked Password Protection" dans le dashboard Supabase Auth (Authentication →
+      Sign In / Providers → Email). Réservée au palier payant Supabase Pro — vérifié le 2026-09-08 :
+      non disponible sur le palier gratuit utilisé actuellement (`concierge-app-prod`). Non
+      bloquant : les mots de passe restent hashés (bcrypt) et validés (≥8 caractères) sans cette
+      protection additionnelle ; à activer si/quand le projet passe sur Supabase Pro.
 - [ ] Remplacer le rate limiter en mémoire par un store partagé (Upstash Redis) avant tout
       déploiement multi-instance.
 - [ ] Implémenter une CSP à nonce correcte pour `script-src` (actuellement `unsafe-inline`).
