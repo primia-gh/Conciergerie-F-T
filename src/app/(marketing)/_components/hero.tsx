@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export function Hero() {
+export function Hero({ dashboardHref }: { dashboardHref?: string | null }) {
   return (
     <section className="relative overflow-hidden">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-16 px-6 py-20 lg:flex-row lg:py-28">
@@ -20,7 +20,9 @@ export function Hero() {
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-6 sm:flex-row lg:justify-start">
             <Button asChild size="lg">
-              <Link href="/signup">Faire une demande</Link>
+              <Link href={dashboardHref ?? "/signup"}>
+                {dashboardHref ? "Accéder à mon espace" : "Faire une demande"}
+              </Link>
             </Button>
             <a
               href="#comment-ca-marche"

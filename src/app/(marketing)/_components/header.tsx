@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: "#faq", label: "FAQ" },
 ];
 
-export function MarketingHeader() {
+export function MarketingHeader({ dashboardHref }: { dashboardHref?: string | null }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -28,12 +28,20 @@ export function MarketingHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm font-medium text-fg-muted hover:text-fg">
-            Se connecter
-          </Link>
-          <Button asChild size="sm">
-            <Link href="/signup">Faire une demande</Link>
-          </Button>
+          {dashboardHref ? (
+            <Button asChild size="sm">
+              <Link href={dashboardHref}>Mon espace</Link>
+            </Button>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm font-medium text-fg-muted hover:text-fg">
+                Se connecter
+              </Link>
+              <Button asChild size="sm">
+                <Link href="/signup">Faire une demande</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>

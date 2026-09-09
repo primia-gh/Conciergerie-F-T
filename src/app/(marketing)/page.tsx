@@ -37,18 +37,23 @@ export default async function MarketingHomePage({ searchParams }: PageProps<"/">
     redirect(dashboardPathForRole(profile.role));
   }
 
+  // Un visiteur qui arrive ici via ?from=app est toujours connecté — la page
+  // le montre plutôt que de laisser "Se connecter" donner l'impression
+  // trompeuse d'une déconnexion (voir ROADMAP.md).
+  const dashboardHref = profile ? dashboardPathForRole(profile.role) : null;
+
   return (
     <div className="flex flex-1 flex-col">
-      <MarketingHeader />
+      <MarketingHeader dashboardHref={dashboardHref} />
       <main>
-        <Hero />
+        <Hero dashboardHref={dashboardHref} />
         <HowItWorks />
         <Services />
         <Selection />
         <Membership />
         <Testimonials />
         <Faq />
-        <CtaBanner />
+        <CtaBanner dashboardHref={dashboardHref} />
       </main>
       <MarketingFooter />
     </div>
