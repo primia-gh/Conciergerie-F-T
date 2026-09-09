@@ -122,7 +122,7 @@ export default async function ClientDashboardPage() {
         </div>
         <div className="flex items-center gap-4">
           <NotificationsBell notifications={notifications ?? []} currentPath="/client/dashboard" />
-          <Link href="/" className="text-sm text-fg-muted hover:underline">
+          <Link href="/?from=app" className="text-sm text-fg-muted hover:underline">
             Voir le site
           </Link>
           <Link href="/account" className="text-sm text-fg-muted hover:underline">

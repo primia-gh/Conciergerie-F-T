@@ -26,12 +26,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function MarketingHomePage() {
+export default async function MarketingHomePage({ searchParams }: PageProps<"/">) {
   // Un utilisateur déjà connecté qui atterrit sur "/" (ex. raccourci PWA,
   // voir manifest.ts) est envoyé directement à son espace plutôt que de
-  // revoir la page marketing.
+  // revoir la page marketing. Exception : le lien "Voir le site" des
+  // dashboards ajoute ?from=app pour montrer la page marketing malgré tout.
+  const params = await searchParams;
   const profile = await getCurrentProfile();
-  if (profile) {
+  if (profile && params.from !== "app") {
     redirect(dashboardPathForRole(profile.role));
   }
 
