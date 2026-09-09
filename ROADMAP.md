@@ -469,6 +469,31 @@ infrastructure Supabase et la vérification.
 - React Native (si la PWA montre ses limites côté usage mobile réel).
 - Commission automatisée / Stripe Connect pour les paiements partenaires.
 
-## Prochaine action immédiate
+## Refresh visuel post-lancement — "Quiet luxury" sombre ✅
 
-Si vous validez cette architecture, la prochaine étape concrète est **M0** : initialisation du dépôt Git, squelette Next.js, et provisionnement Supabase. Rien de plus tant que ce n'est pas confirmé — conformément à la consigne de ne pas lancer le développement des gros modules avant validation.
+Après M16, l'utilisateur a demandé un nouveau sens visuel plus sombre et premium, ainsi qu'un
+dashboard client plus riche. Démarche suivie : mockup dans un canvas de design (validé
+interactivement avec l'utilisateur, palette + mise en page complètes) avant toute modification du
+vrai code — conforme à la règle du projet de ne jamais deviner un choix esthétique sans validation.
+
+- **Identité** : `globals.css` passe en sombre par défaut (charbon chaud) avec un accent laiton/or
+  remplaçant le vert forêt comme couleur d'action principale ; le vert forêt profond original est
+  conservé comme touche ponctuelle (uniquement `cta-banner.tsx`, jamais un token global — voir
+  DECISIONS.md). Boutons passés de `rounded-full` à `rounded-sm` (langage plus éditorial).
+  Icônes PWA, manifeste et image Open Graph resynchronisés sur la nouvelle palette.
+- **Page d'accueil** : hero à deux colonnes avec panneau éditorial (dégradé + mention explicite
+  "PHOTOGRAPHIE ÉDITORIALE — À VENIR", en attente des vrais visuels de l'utilisateur) ; nouvelle
+  section "Sélection" (`selection.tsx`) — vitrine de 6 biens/expériences illustratifs façon
+  Airbnb, sans prix affiché (cohérent avec le modèle de propositions sur-mesure, pas de catalogue
+  à tarif fixe) ; lien de nav ajouté partout où "Services"/"Tarifs" existaient déjà.
+- **Dashboard client** enrichi (`client/dashboard/page.tsx`) : ligne de statistiques (demandes
+  actives, terminées, prochaine réservation réelle via `bookings.scheduled_at`, forfait/quota) ;
+  demandes regroupées "En cours"/"Terminées" avec statuts humanisés (nouveau
+  `src/server/requests/status-labels.ts` — jusqu'ici les badges affichaient l'enum brut, ex.
+  "PROPOSAL_DRAFT") ; carte profil (avatar, membre depuis) ; fil d'activité récente utilisant les
+  vraies entrées `request_status_history` (aucune donnée inventée). Lien "Voir le site" ajouté
+  pour qu'un client connecté puisse revenir consulter la page marketing (qui redirige sinon
+  automatiquement vers le dashboard, voir M16).
+- **DoD vérifié en conditions réelles** : build de production propre, parcours testé au navigateur
+  avec `dev-client@example.invalid` — statistiques et activité récente conformes aux vraies données
+  seedées (2 demandes actives, 1 terminée, aucune réservation à venir, forfait Free 3/2).

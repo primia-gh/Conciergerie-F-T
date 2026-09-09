@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     // (voir src/app/(marketing)/page.tsx) — un seul point d'entrée pour les 4 rôles.
     start_url: "/",
     display: "standalone",
-    background_color: "#faf8f5",
-    theme_color: "#1f4b3f",
+    background_color: "#14120e",
+    theme_color: "#14120e",
     icons: [
       { src: "/icons/192", sizes: "192x192", type: "image/png" },
       { src: "/icons/512", sizes: "512x512", type: "image/png" },

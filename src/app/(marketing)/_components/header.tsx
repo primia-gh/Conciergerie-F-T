@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 const NAV_LINKS = [
   { href: "#comment-ca-marche", label: "Comment ça marche" },
   { href: "#services", label: "Services" },
+  { href: "#selection", label: "Sélection" },
   { href: "#tarifs", label: "Tarifs" },
   { href: "#faq", label: "FAQ" },
 ];

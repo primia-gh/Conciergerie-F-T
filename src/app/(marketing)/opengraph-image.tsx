@@ -14,11 +14,11 @@ export default async function OpengraphImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#1f4b3f",
-          color: "#faf8f5",
+          backgroundColor: "#14120e",
+          color: "#f2efe9",
         }}
       >
-        <div style={{ fontSize: 28, letterSpacing: 4, textTransform: "uppercase", opacity: 0.8 }}>
+        <div style={{ fontSize: 28, letterSpacing: 4, textTransform: "uppercase", color: "#c9a25c" }}>
           Conciergerie privée
         </div>
         <div style={{ fontSize: 72, fontWeight: 600, marginTop: 24, textAlign: "center" }}>

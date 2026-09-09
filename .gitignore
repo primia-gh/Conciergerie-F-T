@@ -37,6 +37,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# design canvas — le fichier "seedé" embarque l'éditeur du outil de design
+# (~2 Mo, régénérable via seed-canvas.mjs) ; seule la source .dc.html compte.
+design/**/*.html
+!design/**/*.dc.html
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

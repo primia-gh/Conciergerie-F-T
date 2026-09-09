@@ -12,6 +12,9 @@ export function MarketingFooter() {
           <a href="#services" className="text-sm text-fg-muted hover:text-fg">
             Services
           </a>
+          <a href="#selection" className="text-sm text-fg-muted hover:text-fg">
+            Sélection
+          </a>
           <a href="#tarifs" className="text-sm text-fg-muted hover:text-fg">
             Tarifs
           </a>

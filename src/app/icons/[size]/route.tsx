@@ -28,7 +28,7 @@ export async function GET(
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#1f4b3f",
+          backgroundColor: "#14120e",
         }}
       >
         <div
@@ -36,7 +36,7 @@ export async function GET(
             fontSize: glyphSize,
             fontWeight: 600,
             fontFamily: "serif",
-            color: "#faf8f5",
+            color: "#c9a25c",
           }}
         >
           C

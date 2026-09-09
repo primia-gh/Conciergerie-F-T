@@ -6,6 +6,7 @@ import { MarketingHeader } from "./_components/header";
 import { Hero } from "./_components/hero";
 import { HowItWorks } from "./_components/how-it-works";
 import { Services } from "./_components/services";
+import { Selection } from "./_components/selection";
 import { Membership } from "./_components/membership";
 import { Testimonials } from "./_components/testimonials";
 import { Faq } from "./_components/faq";
@@ -41,6 +42,7 @@ export default async function MarketingHomePage() {
         <Hero />
         <HowItWorks />
         <Services />
+        <Selection />
         <Membership />
         <Testimonials />
         <Faq />
