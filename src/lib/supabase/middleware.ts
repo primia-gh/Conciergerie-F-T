@@ -11,6 +11,7 @@ const PUBLIC_PATHS = [
   "/robots.txt",
   "/sitemap.xml",
   "/manifest.webmanifest",
+  "/proprietaires", // chat de prospection F&T (lot L1), public par nature
 ];
 
 // Next.js suffixe les fichiers de convention (opengraph-image, icon...) d'un
@@ -51,7 +52,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && !isPublicPath(request.nextUrl.pathname)) {
+  // Les routes /api/* gèrent elles-mêmes leur autorisation (ex. le jeton
+  // Bearer de /api/cron/relances) : les rediriger vers /login n'aurait pas
+  // de sens pour un appelant qui n'est pas un navigateur.
+  const estApi = request.nextUrl.pathname.startsWith("/api/");
+
+  if (!user && !estApi && !isPublicPath(request.nextUrl.pathname)) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);

@@ -92,6 +92,13 @@
       "when": 1789669850011,
       "tag": "0015_agent_ft_l0_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789675548992,
+      "tag": "0020_agent_ft_l1_message_author_proprietaire",
+      "breakpoints": true
     }
   ]
 }

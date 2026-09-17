@@ -412,10 +412,14 @@ export const ownerStatusEnum = pgEnum("owner_status", [
 ]);
 
 // "auteur (voyageur, agent, gérant)" — cahier des charges, table `message`.
+// "proprietaire" ajouté en L1 : le cahier des charges ne prévoyait que
+// voyageur/agent/gérant pour la table `message`, mais le chat de prospection
+// (L1) fait parler un propriétaire (prospect), pas un voyageur en séjour.
 export const messageAgentAuthorEnum = pgEnum("message_agent_author", [
   "voyageur",
   "agent",
   "gerant",
+  "proprietaire",
 ]);
 
 // "statut (proposé, validé, envoyé, corrigé)" — cahier des charges, table `message`.
