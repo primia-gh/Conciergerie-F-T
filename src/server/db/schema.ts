@@ -390,3 +390,288 @@ export const auditLogs = pgTable("audit_logs", {
   metadata: jsonb("metadata").notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// =====================================================================
+// Agent IA Conciergerie F&T — conciergerie de location courte durée.
+// Produit séparé de Conciergerie Premium ci-dessus (voir CLAUDE.md et
+// docs/cahier-des-charges.md) : personnes, données et permissions
+// distinctes, coexistant dans la même base. Lot L0 (socle) — 2026-09-17.
+//
+// Noms de table en français, à l'identique du cahier des charges, pour
+// que l'utilisateur (non développeur) puisse toujours faire le lien avec
+// son document de référence. Seule exception : `message` du cahier des
+// charges devient `message_agent` ici, car `messages` (Conciergerie
+// Premium, ligne 262) existe déjà avec un sens différent.
+// =====================================================================
+
+export const ownerStatusEnum = pgEnum("owner_status", [
+  "prospect",
+  "en_discussion",
+  "client",
+  "perdu",
+]);
+
+// "auteur (voyageur, agent, gérant)" — cahier des charges, table `message`.
+export const messageAgentAuthorEnum = pgEnum("message_agent_author", [
+  "voyageur",
+  "agent",
+  "gerant",
+]);
+
+// "statut (proposé, validé, envoyé, corrigé)" — cahier des charges, table `message`.
+export const messageAgentStatusEnum = pgEnum("message_agent_status", [
+  "propose",
+  "valide",
+  "envoye",
+  "corrige",
+]);
+
+// Les 3 niveaux d'autonomie du cahier des charges (§ Comportement de l'agent).
+export const autonomyLevelEnum = pgEnum("autonomy_level", [
+  "propose",
+  "agit_apres_validation",
+  "agit_seul",
+]);
+
+export const proprietaire = pgTable("proprietaire", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nom: text("nom").notNull(),
+  email: text("email"),
+  telephone: text("telephone"),
+  statut: ownerStatusEnum("statut").notNull().default("prospect"),
+  source: text("source"),
+  ville: text("ville"),
+  dateSignature: date("date_signature"),
+  tauxCommission: numeric("taux_commission", { precision: 5, scale: 2 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Qualification avant signature — "le bien devient logement à la signature".
+export const bienProspect = pgTable("bien_prospect", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  proprietaireId: uuid("proprietaire_id")
+    .notNull()
+    .references(() => proprietaire.id, { onDelete: "cascade" }),
+  type: text("type"),
+  adresse: text("adresse"),
+  residencePrincipale: boolean("residence_principale"),
+  capacite: integer("capacite"),
+  equipements: text("equipements").array().notNull().default([]),
+  disponibiliteSouhaitee: text("disponibilite_souhaitee"),
+  estimationPreparee: text("estimation_preparee"),
+  estimationEnvoyeeLe: timestamp("estimation_envoyee_le", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const logement = pgTable("logement", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  proprietaireId: uuid("proprietaire_id")
+    .notNull()
+    .references(() => proprietaire.id, { onDelete: "restrict" }),
+  nom: text("nom").notNull(),
+  adresse: text("adresse").notNull(),
+  capacite: integer("capacite"),
+  equipements: text("equipements").array().notNull().default([]),
+  reglesMaison: text("regles_maison"),
+  heureArrivee: time("heure_arrivee"),
+  heureDepart: time("heure_depart"),
+  dureeMenageMinutes: integer("duree_menage_minutes"),
+  // "activé pour l'agent seulement si sa fiche est complète" (§ Base de connaissances).
+  statut: text("statut").notNull().default("inactif"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Table séparée et chiffrée — "jamais injectée telle quelle dans un message du modèle".
+// Le chiffrement applicatif (colonne `valeur`) arrive avec l'outil `lire_logement`
+// au lot L2 ; L0 pose seulement la structure, sans données réelles dedans encore.
+export const secretLogement = pgTable("secret_logement", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  logementId: uuid("logement_id")
+    .notNull()
+    .references(() => logement.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  valeurChiffree: text("valeur_chiffree").notNull(),
+  fenetreEnvoiDebut: text("fenetre_envoi_debut"),
+  fenetreEnvoiFin: text("fenetre_envoi_fin"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// "Alimentée par l'adaptateur PMS" (lot L2) — vide tant qu'aucun PMS n'est choisi.
+export const reservation = pgTable("reservation", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  logementId: uuid("logement_id")
+    .notNull()
+    .references(() => logement.id, { onDelete: "cascade" }),
+  canal: text("canal"),
+  identifiantExterne: text("identifiant_externe"),
+  voyageurId: uuid("voyageur_id").references(() => voyageur.id, { onDelete: "set null" }),
+  dateArrivee: date("date_arrivee"),
+  dateDepart: date("date_depart"),
+  nombrePersonnes: integer("nombre_personnes"),
+  montant: numeric("montant", { precision: 10, scale: 2 }),
+  statut: text("statut").notNull().default("en_attente"),
+  derniereSynchronisation: timestamp("derniere_synchronisation", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const voyageur = pgTable("voyageur", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nom: text("nom"),
+  langue: text("langue").notNull().default("fr"),
+  telephone: text("telephone"),
+  email: text("email"),
+  preferences: jsonb("preferences").notNull().default({}),
+  consentementMemoire: boolean("consentement_memoire").notNull().default(false),
+  datePurgePrevue: date("date_purge_prevue"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// "Base du tableau de fiabilité" — voir cahier des charges, table `message`.
+// Renommée `message_agent` pour éviter la collision avec `messages` (ligne 262).
+export const messageAgent = pgTable("message_agent", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reservationId: uuid("reservation_id").references(() => reservation.id, { onDelete: "cascade" }),
+  bienProspectId: uuid("bien_prospect_id").references(() => bienProspect.id, {
+    onDelete: "cascade",
+  }),
+  canal: text("canal").notNull(),
+  sens: text("sens").notNull(),
+  contenu: text("contenu").notNull(),
+  langue: text("langue").notNull().default("fr"),
+  auteur: messageAgentAuthorEnum("auteur").notNull(),
+  statut: messageAgentStatusEnum("statut").notNull().default("propose"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Le journal — "jamais modifiable après écriture". Aucune politique RLS
+// d'update n'est créée pour cette table (voir migration L0).
+export const action = pgTable("action", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  type: text("type").notNull(),
+  entiteType: text("entite_type"),
+  entiteId: uuid("entite_id"),
+  decision: text("decision").notNull(),
+  regleAppliquee: text("regle_appliquee"),
+  autonomieAuMoment: autonomyLevelEnum("autonomie_au_moment"),
+  auteur: text("auteur").notNull(),
+  justification: text("justification"),
+  resultat: text("resultat"),
+  coutTraitement: numeric("cout_traitement", { precision: 10, scale: 4 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// "Le cadre de décision, modifiable sans toucher au code" — une ligne par
+// tâche réglable (réponse factuelle, envoi infos d'arrivée, etc.).
+export const regle = pgTable("regle", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  domaine: text("domaine").notNull(),
+  tache: text("tache").notNull(),
+  condition: text("condition"),
+  actionAutorisee: text("action_autorisee"),
+  plafond: numeric("plafond", { precision: 10, scale: 2 }),
+  niveauAutonomie: autonomyLevelEnum("niveau_autonomie").notNull().default("propose"),
+  version: integer("version").notNull().default(1),
+  actif: boolean("actif").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const incident = pgTable("incident", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  logementId: uuid("logement_id")
+    .notNull()
+    .references(() => logement.id, { onDelete: "cascade" }),
+  reservationId: uuid("reservation_id").references(() => reservation.id, { onDelete: "set null" }),
+  type: text("type").notNull(),
+  description: text("description").notNull(),
+  photos: jsonb("photos").notNull().default([]),
+  gravite: text("gravite"),
+  statut: text("statut").notNull().default("ouvert"),
+  prestataireId: uuid("prestataire_id").references(() => prestataire.id, { onDelete: "set null" }),
+  coutEstime: numeric("cout_estime", { precision: 10, scale: 2 }),
+  validationProprietaire: boolean("validation_proprietaire"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const prestataire = pgTable("prestataire", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  nom: text("nom").notNull(),
+  metier: text("metier").notNull(),
+  zone: text("zone"),
+  disponibilites: jsonb("disponibilites").notNull().default({}),
+  contact: text("contact"),
+  tarif: numeric("tarif", { precision: 10, scale: 2 }),
+  note: numeric("note", { precision: 3, scale: 2 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Phase 4 — table posée en L0 (toutes les tables du modèle de données le
+// sont), mais sans utilisation réelle avant le lot L4.
+export const menage = pgTable("menage", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  logementId: uuid("logement_id")
+    .notNull()
+    .references(() => logement.id, { onDelete: "cascade" }),
+  reservationId: uuid("reservation_id").references(() => reservation.id, { onDelete: "set null" }),
+  prestataireId: uuid("prestataire_id").references(() => prestataire.id, { onDelete: "set null" }),
+  date: date("date").notNull(),
+  statut: text("statut").notNull().default("planifie"),
+  checklist: jsonb("checklist").notNull().default([]),
+  photosAvant: jsonb("photos_avant").notNull().default([]),
+  photosApres: jsonb("photos_apres").notNull().default([]),
+  anomaliesDetectees: text("anomalies_detectees"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// "Ce que l'agent a le droit de dire" — fiche offre F&T (portée globale) et
+// fiches par logement (portée = logementId), versionnées.
+export const ficheConnaissance = pgTable("fiche_connaissance", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  logementId: uuid("logement_id").references(() => logement.id, { onDelete: "cascade" }),
+  section: text("section").notNull(),
+  contenu: text("contenu").notNull(),
+  version: integer("version").notNull().default(1),
+  auteur: text("auteur"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const rendezVous = pgTable("rendez_vous", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  bienProspectId: uuid("bien_prospect_id").references(() => bienProspect.id, {
+    onDelete: "cascade",
+  }),
+  creneau: timestamp("creneau", { withTimezone: true }).notNull(),
+  canal: text("canal"),
+  statut: text("statut").notNull().default("propose"),
+  compteRendu: text("compte_rendu"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Infrastructure d'authentification légère pour propriétaire/prestataire
+// ("compte avec lien de connexion à usage unique" / "lien de mission
+// personnel") — pas des comptes Supabase Auth complets, juste un jeton à
+// usage unique qui expire. Le "Gérant" utilise le compte admin existant
+// de Conciergerie Premium, pas cette table.
+export const lienAcces = pgTable("lien_acces", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  proprietaireId: uuid("proprietaire_id").references(() => proprietaire.id, {
+    onDelete: "cascade",
+  }),
+  prestataireId: uuid("prestataire_id").references(() => prestataire.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

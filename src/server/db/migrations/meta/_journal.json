@@ -85,6 +85,13 @@
       "when": 1788801300000,
       "tag": "0011_notifications_insert_policy",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789669850011,
+      "tag": "0015_agent_ft_l0_schema",
+      "breakpoints": true
     }
   ]
 }
