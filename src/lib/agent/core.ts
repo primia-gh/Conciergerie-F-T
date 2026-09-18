@@ -29,11 +29,27 @@ export type TourAgentResult = {
  * que le modèle en réclame, jusqu'à une réponse texte finale ou la limite de
  * tours de sécurité MAX_TOURS_OUTILS.
  */
+/**
+ * Sans ANTHROPIC_API_KEY, pas d'appel au modèle : on renvoie une réponse
+ * fixe, clairement annoncée comme telle, plutôt que de faire échouer toute
+ * la conversation. Ça permet de tester le reste du circuit (site, base de
+ * données, tableau de bord Gérant) avant d'avoir la clé en main — mais
+ * aucune qualification ni rendez-vous n'est simulé : ce serait inventer des
+ * données, ce que l'agent ne doit jamais faire même en mode démonstration.
+ */
+const REPONSE_SANS_CLE =
+  "Mode démonstration (clé Claude non configurée) : votre message a bien été reçu et enregistré. " +
+  "Une fois ANTHROPIC_API_KEY renseignée, je pourrai vraiment répondre à partir de la fiche offre F&T.";
+
 export async function jouerTourAgent(params: {
   systemPrompt: string;
   historique: MessageConversation[];
   executeurOutil: ExecuteurOutil;
 }): Promise<TourAgentResult> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return { texte: REPONSE_SANS_CLE, appelsOutils: [] };
+  }
+
   const { systemPrompt, executeurOutil } = params;
   const messages: Anthropic.MessageParam[] = params.historique.map((m) => ({
     role: m.role,
