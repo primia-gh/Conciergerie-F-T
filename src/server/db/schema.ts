@@ -667,17 +667,32 @@ export const menage = pgTable("menage", {
 
 // "Ce que l'agent a le droit de dire" — fiche offre F&T (portée globale) et
 // fiches par logement (portée = logementId), versionnées.
-export const ficheConnaissance = pgTable("fiche_connaissance", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  logementId: uuid("logement_id").references(() => logement.id, { onDelete: "cascade" }),
-  section: text("section").notNull(),
-  contenu: text("contenu").notNull(),
-  version: integer("version").notNull().default(1),
-  auteur: text("auteur"),
-  activite: activiteEnum("activite").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const ficheConnaissance = pgTable(
+  "fiche_connaissance",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    logementId: uuid("logement_id").references(() => logement.id, { onDelete: "cascade" }),
+    section: text("section").notNull(),
+    contenu: text("contenu").notNull(),
+    version: integer("version").notNull().default(1),
+    auteur: text("auteur"),
+    activite: activiteEnum("activite").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // Deux enregistrements simultanés ne peuvent pas créer deux fois la même
+  // version d'une section : le second échoue au lieu de dupliquer. Deux index
+  // partiels, car un logement_id NULL (fiche globale) ne conflit pas avec
+  // lui-même dans un index unique classique.
+  (table) => [
+    uniqueIndex("fiche_globale_version_idx")
+      .on(table.activite, table.section, table.version)
+      .where(sql`${table.logementId} is null`),
+    uniqueIndex("fiche_logement_version_idx")
+      .on(table.logementId, table.section, table.version)
+      .where(sql`${table.logementId} is not null`),
+  ],
+);
 
 export const rendezVous = pgTable("rendez_vous", {
   id: uuid("id").primaryKey().defaultRandom(),

@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "fiche_globale_version_idx" ON "fiche_connaissance" USING btree ("activite","section","version") WHERE "fiche_connaissance"."logement_id" is null;--> statement-breakpoint
+CREATE UNIQUE INDEX "fiche_logement_version_idx" ON "fiche_connaissance" USING btree ("logement_id","section","version") WHERE "fiche_connaissance"."logement_id" is not null;
