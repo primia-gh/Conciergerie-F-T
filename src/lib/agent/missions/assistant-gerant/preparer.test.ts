@@ -4,7 +4,7 @@ import type { jouerTourAgent } from "../../core";
 import { preparerReponseAssistant } from "./preparer";
 
 const FICHES = [
-  { id: "f1", logement_id: null, section: "equipements", version: 2, contenu: "Wifi : réseau Maison." },
+  { id: "f1", activite: "ft", logement_id: null, section: "equipements", version: 2, contenu: "Wifi : réseau Maison." },
 ];
 
 function fakeSupabase(lignes = FICHES) {

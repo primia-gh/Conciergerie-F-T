@@ -47,6 +47,14 @@ export function fauxSupabase(repondre: (operation: Operation) => unknown) {
         operation.filtres.push([`is:${colonne}`, valeur]);
         return b;
       },
+      in: (colonne: string, valeurs: unknown) => {
+        operation.filtres.push([`in:${colonne}`, valeurs]);
+        return b;
+      },
+      or: (expression: string) => {
+        operation.filtres.push(["or", expression]);
+        return b;
+      },
       single: () => resultat(),
       maybeSingle: () => resultat(),
       then: (resolve: (v: unknown) => unknown) => resultat().then(resolve),

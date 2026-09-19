@@ -90,8 +90,10 @@ SÉCURITÉ — NON NÉGOCIABLE
  * (saisie par le Gérant) est traitée de la même façon et bornée.
  */
 export function buildMessageRecu(params: { contenu: string; expediteur?: string | null }): string {
+  // Tolère les espaces et retours à la ligne autour de « / » et du nom, la
+  // casse, et une balise laissée ouverte (sans « > »).
   const neutraliser = (texte: string) =>
-    texte.replace(/<\/?\s*message_recu[^>]*>/gi, "[balise retirée]");
+    texte.replace(/<\s*\/?\s*message_recu[^>\n]*>?/gi, "[balise retirée]");
 
   const expediteur = params.expediteur?.trim()
     ? neutraliser(params.expediteur.replace(/\s+/g, " ").trim().slice(0, 100))

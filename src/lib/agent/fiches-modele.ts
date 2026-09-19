@@ -140,7 +140,13 @@ const MOTS_CODE =
   "digicode|code d['’]?acc[eè]s|code (?:de la |de l['’])?porte|code (?:de la |de l['’])?bo[iî]te|bo[iî]te [àa] cl[eé]s?|cadenas|alarme|interphone";
 
 // Un mot-clé d'accès suivi, sur la même ligne, d'un nombre de 3 à 8 chiffres.
-const CODE_NUMERIQUE = new RegExp(`(?:${MOTS_CODE})[^\\n]{0,40}?(?<![\\d.,])\\d{3,8}(?![\\d.,])`, "i");
+// Un chiffre suivi d'une virgule ou d'un point en fin de phrase (« le digicode
+// est 4521. ») reste un code ; seule une décimale (« 3,5 ») ou un séparateur de
+// milliers (« 1,250 ») est écartée.
+const CODE_NUMERIQUE = new RegExp(
+  `(?:${MOTS_CODE})[^\\n]{0,40}?(?<!\\d)(?<!\\d[.,])\\d{3,8}(?!\\d)(?![.,]\\d)`,
+  "i",
+);
 
 // « mot de passe : xxxx » / « mdp = xxxx » / « password est xxxx » : une valeur
 // suit le mot-clé. « mot de passe sur le frigo » n'est pas signalé.
@@ -155,8 +161,33 @@ export function detecterCodesProbables(contenu: string): string[] {
   return contenu
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .filter((l) => l && (CODE_NUMERIQUE.test(l) || MOT_DE_PASSE.test(l)))
+    .filter((l) => l && ligneRessembleAUnCode(l))
     .map((l) => (l.length > 80 ? `${l.slice(0, 79)}…` : l));
+}
+
+function ligneRessembleAUnCode(ligne: string): boolean {
+  return CODE_NUMERIQUE.test(ligne) || MOT_DE_PASSE.test(ligne);
+}
+
+export const LIGNE_MASQUEE = "[ligne masquée : ressemble à un code d'accès]";
+
+/**
+ * Remplace, dans une fiche, chaque ligne qui ressemble à un code ou à un mot
+ * de passe. Appliqué avant de donner une fiche au modèle : « un secret n'est
+ * jamais injecté tel quel dans un message du modèle » (cahier des charges). Ce
+ * que le modèle n'a pas vu, il ne peut pas le recopier, même manipulé.
+ *
+ * L'heuristique peut masquer à tort une ligne légitime : l'assistant dira
+ * alors qu'il n'a pas l'information et escaladera, ce qui est sans danger.
+ */
+export function masquerCodes(contenu: string): { contenu: string; lignesMasquees: number } {
+  let lignesMasquees = 0;
+  const lignes = contenu.split(/\r?\n/).map((ligne) => {
+    if (!ligne.trim() || !ligneRessembleAUnCode(ligne.trim())) return ligne;
+    lignesMasquees++;
+    return LIGNE_MASQUEE;
+  });
+  return { contenu: lignes.join("\n"), lignesMasquees };
 }
 
 export type AjoutLigne = { ok: true; contenu: string } | { ok: false; error: string };

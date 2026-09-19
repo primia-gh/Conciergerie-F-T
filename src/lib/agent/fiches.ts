@@ -45,7 +45,7 @@ export async function lireFichesPourAssistant(
 
   let requete = supabase
     .from("fiche_connaissance")
-    .select("id, logement_id, section, version, contenu")
+    .select("id, logement_id, activite, section, version, contenu")
     .in("activite", [activite, "commun"]);
 
   requete =
@@ -56,7 +56,14 @@ export async function lireFichesPourAssistant(
   const { data, error } = await requete
     .order("version", { ascending: false })
     .returns<
-      { id: string; logement_id: string | null; section: string; version: number; contenu: string }[]
+      {
+        id: string;
+        logement_id: string | null;
+        activite: string;
+        section: string;
+        version: number;
+        contenu: string;
+      }[]
     >();
 
   if (error) throw new Error(`Lecture des fiches impossible : ${error.message}`);
@@ -66,6 +73,13 @@ export async function lireFichesPourAssistant(
   const vues = new Set<string>();
   const fiches: FicheLue[] = [];
   for (const ligne of data ?? []) {
+    // Second contrôle, indépendant du filtre envoyé à la base : si celui-ci était
+    // un jour mal écrit ou contourné, une fiche de l'autre activité ou d'un autre
+    // logement n'atteindrait quand même jamais le modèle.
+    const activiteAutorisee = ligne.activite === activite || ligne.activite === "commun";
+    const portee = ligne.logement_id === null || ligne.logement_id === logementId;
+    if (!activiteAutorisee || !portee) continue;
+
     const cle = `${ligne.logement_id ?? "global"}::${ligne.section}`;
     if (vues.has(cle)) continue;
     vues.add(cle);

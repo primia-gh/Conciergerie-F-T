@@ -5,6 +5,7 @@ import { lireFichesPourAssistant } from "./fiches";
 type Ligne = {
   id: string;
   logement_id: string | null;
+  activite: string;
   section: string;
   version: number;
   contenu: string;
@@ -97,9 +98,9 @@ describe("lireFichesPourAssistant", () => {
 
   it("ne garde que la dernière version de chaque section", async () => {
     const { supabase } = fakeSupabase([
-      { id: "v3", logement_id: null, section: "offre_ft", version: 3, contenu: "récente" },
-      { id: "v2", logement_id: null, section: "offre_ft", version: 2, contenu: "ancienne" },
-      { id: "r1", logement_id: null, section: "regles", version: 1, contenu: "règles" },
+      { id: "v3", activite: "ft", logement_id: null, section: "offre_ft", version: 3, contenu: "récente" },
+      { id: "v2", activite: "ft", logement_id: null, section: "offre_ft", version: 2, contenu: "ancienne" },
+      { id: "r1", activite: "ft", logement_id: null, section: "regles", version: 1, contenu: "règles" },
     ]);
 
     const fiches = await lireFichesPourAssistant(supabase, { activite: "ft" });
@@ -112,13 +113,39 @@ describe("lireFichesPourAssistant", () => {
 
   it("distingue une même section globale et celle d'un logement", async () => {
     const { supabase } = fakeSupabase([
-      { id: "g", logement_id: null, section: "regles", version: 1, contenu: "globales" },
-      { id: "l", logement_id: LOGEMENT_A, section: "regles", version: 1, contenu: "du logement" },
+      { id: "g", activite: "ft", logement_id: null, section: "regles", version: 1, contenu: "globales" },
+      { id: "l", activite: "ft", logement_id: LOGEMENT_A, section: "regles", version: 1, contenu: "du logement" },
     ]);
 
     const fiches = await lireFichesPourAssistant(supabase, { activite: "ft", logementId: LOGEMENT_A });
 
     expect(fiches).toHaveLength(2);
+  });
+
+  it("écarte de toute façon une fiche de l'autre activité ou d'un autre logement, même si la base la renvoie", async () => {
+    const AUTRE = "99999999-9999-4999-8999-999999999999";
+    const { supabase } = fakeSupabase([
+      { id: "ok-globale", activite: "ft", logement_id: null, section: "regles", version: 1, contenu: "globale F&T" },
+      { id: "ok-commune", activite: "commun", logement_id: null, section: "faq", version: 1, contenu: "commune" },
+      { id: "ok-logement", activite: "ft", logement_id: LOGEMENT_A, section: "acces", version: 1, contenu: "logement A" },
+      { id: "fuite-premium", activite: "premium", logement_id: null, section: "offre_premium", version: 1, contenu: "Premium" },
+      { id: "fuite-autre-logement", activite: "ft", logement_id: AUTRE, section: "acces", version: 9, contenu: "logement B" },
+    ]);
+
+    const fiches = await lireFichesPourAssistant(supabase, { activite: "ft", logementId: LOGEMENT_A });
+
+    expect(fiches.map((f) => f.id).sort()).toEqual(["ok-commune", "ok-globale", "ok-logement"]);
+  });
+
+  it("sans logement, écarte aussi toute fiche de logement renvoyée par erreur", async () => {
+    const { supabase } = fakeSupabase([
+      { id: "globale", activite: "ft", logement_id: null, section: "regles", version: 1, contenu: "g" },
+      { id: "fuite", activite: "ft", logement_id: LOGEMENT_A, section: "acces", version: 1, contenu: "l" },
+    ]);
+
+    const fiches = await lireFichesPourAssistant(supabase, { activite: "ft" });
+
+    expect(fiches.map((f) => f.id)).toEqual(["globale"]);
   });
 
   it("remonte une erreur de lecture au lieu de continuer sans fiche", async () => {

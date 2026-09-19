@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { assertRole } from "@/server/auth/guards";
 import { createServiceClient } from "@/lib/supabase/service";
 import { ecrireAuJournal } from "@/lib/agent/journal";
+import { masquerDonneesBancaires } from "@/lib/agent/donnees-bancaires";
 import { preparerReponseAssistant } from "@/lib/agent/missions/assistant-gerant/preparer";
 import { missionAssistantGerant } from "@/lib/agent/missions/assistant-gerant";
 import {
@@ -39,7 +40,15 @@ export async function creerDemande(_prevState: FormState, formData: FormData): P
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
   }
-  const { activite, logementId, expediteur, contenu } = parsed.data;
+  const { activite, logementId } = parsed.data;
+
+  // « Aucune donnée bancaire ne transite par l'agent » : numéros de carte et IBAN
+  // sont masqués AVANT l'enregistrement et avant tout envoi au modèle.
+  const messageMasque = masquerDonneesBancaires(parsed.data.contenu);
+  const expediteurMasque = parsed.data.expediteur ? masquerDonneesBancaires(parsed.data.expediteur) : null;
+  const contenu = messageMasque.texte;
+  const expediteur = expediteurMasque ? expediteurMasque.texte : parsed.data.expediteur;
+  const donneesBancairesMasquees = messageMasque.masques + (expediteurMasque?.masques ?? 0);
 
   const supabase = createServiceClient();
 
@@ -107,7 +116,10 @@ export async function creerDemande(_prevState: FormState, formData: FormData): P
     regleAppliquee: missionAssistantGerant(activite).nom,
     autonomieAuMoment: "propose",
     auteur: "agent",
-    justification: detailErreur,
+    justification:
+      [detailErreur, donneesBancairesMasquees > 0 ? `${donneesBancairesMasquees} donnée(s) bancaire(s) masquée(s) avant enregistrement` : null]
+        .filter(Boolean)
+        .join(" ; ") || undefined,
     resultat: miseAJour.journal.resultat,
   });
 

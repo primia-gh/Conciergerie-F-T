@@ -112,6 +112,23 @@ describe("detecterCodesProbables", () => {
   });
 
   it.each([
+    "Le digicode est 4521.",
+    "Digicode : 4521, entrez vite.",
+    "Le code de la boîte à clés est 1357 (à droite de la porte).",
+    "Alarme : 1357 !",
+  ])("signale un code suivi d'une ponctuation : « %s »", (ligne) => {
+    expect(detecterCodesProbables(ligne)).toHaveLength(1);
+  });
+
+  it.each([
+    "Alarme incendie à 3,5 m du couloir",
+    "Interphone au 2ème étage, tarif 12,50 €",
+    "Code postal 67000, parking à 1,250 km",
+  ])("ne confond pas un nombre décimal ou un séparateur de milliers avec un code : « %s »", (ligne) => {
+    expect(detecterCodesProbables(ligne)).toEqual([]);
+  });
+
+  it.each([
     "Mot de passe : Maison2026!",
     "mdp = abcd1234",
     "Le mot de passe du wifi est Soleil2026",
