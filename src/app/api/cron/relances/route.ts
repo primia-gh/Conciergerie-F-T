@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createServiceClient } from "@/lib/supabase/service";
 import { ecrireAuJournal } from "@/lib/agent/journal";
+import { lireNiveauAutonomie } from "@/lib/agent/regles";
 
 export const dynamic = "force-dynamic";
 
@@ -24,14 +25,12 @@ export async function GET(request: Request) {
   const supabase = createServiceClient();
   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-  const { data: regleRelance } = await supabase
-    .from("regle")
-    .select("niveau_autonomie")
-    .eq("domaine", "communication")
-    .eq("tache", "relance_prospect_48h")
-    .eq("actif", true)
-    .maybeSingle();
-  if (regleRelance?.niveau_autonomie && regleRelance.niveau_autonomie !== "agit_seul") {
+  const niveauRelance = await lireNiveauAutonomie(supabase, {
+    activite: "ft",
+    domaine: "communication",
+    tache: "relance_prospect_48h",
+  });
+  if (niveauRelance && niveauRelance !== "agit_seul") {
     return NextResponse.json({ ok: true, relancesEnvoyees: 0, note: "Relance désactivée : niveau d'autonomie réglé en dessous de agit_seul." });
   }
 
@@ -76,6 +75,7 @@ export async function GET(request: Request) {
       "Vous vous étiez renseigné sur la gestion de votre bien avec Conciergerie F&T — souhaitez-vous qu'on reprenne l'échange où on l'avait laissé ?";
 
     await supabase.from("message_agent").insert({
+      activite: "ft",
       bien_prospect_id: prospect.id,
       canal: "email",
       sens: "sortant",
@@ -94,6 +94,7 @@ export async function GET(request: Request) {
     }
 
     await ecrireAuJournal({
+      activite: "ft",
       type: "relance_prospect",
       entiteType: "bien_prospect",
       entiteId: prospect.id,

@@ -4,8 +4,12 @@ import { z } from "zod";
 import { headers } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/service";
 import { checkRateLimit } from "@/server/security/rate-limit";
-import { buildPromptProspectProprietaire } from "@/lib/agent/prompt";
+import {
+  MISSION_PROSPECT_FT,
+  buildPromptProspectProprietaire,
+} from "@/lib/agent/missions/prospect-ft";
 import { jouerTourAgent, type MessageConversation } from "@/lib/agent/core";
+import { lireNiveauAutonomie } from "@/lib/agent/regles";
 import { alerterGerant } from "@/lib/agent/alert";
 import { chatProspectionActif } from "@/lib/agent/flags";
 import { ecrireAuJournal } from "@/lib/agent/journal";
@@ -91,21 +95,20 @@ export async function envoyerMessageProprietaire(input: {
     proprietaireId = proprietaire.id as string;
   }
 
-  const [{ data: ficheRows }, { data: regleRow }, { data: historiqueRows }] = await Promise.all([
+  const [{ data: ficheRows }, niveauRegle, { data: historiqueRows }] = await Promise.all([
     supabase
       .from("fiche_connaissance")
       .select("contenu")
+      .eq("activite", MISSION_PROSPECT_FT.activite)
       .is("logement_id", null)
       .eq("section", "offre_ft")
       .order("version", { ascending: false })
       .limit(1),
-    supabase
-      .from("regle")
-      .select("niveau_autonomie")
-      .eq("domaine", "communication")
-      .eq("tache", "reponse_offre_prospect")
-      .eq("actif", true)
-      .maybeSingle(),
+    lireNiveauAutonomie(supabase, {
+      activite: MISSION_PROSPECT_FT.activite,
+      domaine: "communication",
+      tache: "reponse_offre_prospect",
+    }),
     supabase
       .from("message_agent")
       .select("auteur, contenu, sens")
@@ -115,9 +118,10 @@ export async function envoyerMessageProprietaire(input: {
   ]);
 
   const ficheOffre = ficheRows?.[0]?.contenu ?? "Fiche offre non encore renseignée.";
-  const niveauAutonomie = regleRow?.niveau_autonomie ?? "agit_apres_validation";
+  const niveauAutonomie = niveauRegle ?? "agit_apres_validation";
 
   await supabase.from("message_agent").insert({
+    activite: MISSION_PROSPECT_FT.activite,
     bien_prospect_id: bienProspectId,
     canal: "chat_site",
     sens: "entrant",
@@ -141,6 +145,7 @@ export async function envoyerMessageProprietaire(input: {
   let escalade = false;
 
   const { texte } = await jouerTourAgent({
+    mission: MISSION_PROSPECT_FT,
     systemPrompt,
     historique,
     executeurOutil: async (appel) => {
@@ -167,6 +172,7 @@ export async function envoyerMessageProprietaire(input: {
           await supabase.from("proprietaire").update(updateProprietaire).eq("id", proprietaireId);
         }
         await ecrireAuJournal({
+          activite: "ft",
           type: "qualification_prospect",
           entiteType: "bien_prospect",
           entiteId: bienProspectId!,
@@ -192,6 +198,7 @@ export async function envoyerMessageProprietaire(input: {
           statut: "propose",
         });
         await ecrireAuJournal({
+          activite: "ft",
           type: "creation_rendez_vous",
           entiteType: "bien_prospect",
           entiteId: bienProspectId!,
@@ -207,6 +214,7 @@ export async function envoyerMessageProprietaire(input: {
         escalade = true;
         const motif = String((appel.input as Record<string, unknown>).motif ?? "non précisé");
         await ecrireAuJournal({
+          activite: "ft",
           type: "escalade",
           entiteType: "bien_prospect",
           entiteId: bienProspectId!,
@@ -231,6 +239,7 @@ export async function envoyerMessageProprietaire(input: {
     : "Merci pour votre message. Un membre de l'équipe F&T vous répond personnellement très vite.";
 
   await supabase.from("message_agent").insert({
+    activite: MISSION_PROSPECT_FT.activite,
     bien_prospect_id: bienProspectId,
     canal: "chat_site",
     sens: "sortant",
@@ -240,6 +249,7 @@ export async function envoyerMessageProprietaire(input: {
   });
 
   await ecrireAuJournal({
+    activite: "ft",
     type: "reponse_offre_prospect",
     entiteType: "bien_prospect",
     entiteId: bienProspectId!,

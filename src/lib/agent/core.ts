@@ -1,6 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
-import { OUTILS_PROSPECTION } from "./tools";
+import type { Mission } from "./types";
 
 const MODELE = "claude-sonnet-5";
 const MAX_TOKENS = 1024;
@@ -24,33 +24,24 @@ export type TourAgentResult = {
 };
 
 /**
- * Fait tourner l'agent sur un message, en exécutant les outils demandés via
+ * Fait tourner l'agent sur un message pour une mission donnée. Le modèle ne
+ * peut appeler que les outils de la mission ; ils sont exécutés via
  * `executeurOutil` (injecté par l'appelant — voir server/agent/chat.ts) tant
  * que le modèle en réclame, jusqu'à une réponse texte finale ou la limite de
  * tours de sécurité MAX_TOURS_OUTILS.
  */
-/**
- * Sans ANTHROPIC_API_KEY, pas d'appel au modèle : on renvoie une réponse
- * fixe, clairement annoncée comme telle, plutôt que de faire échouer toute
- * la conversation. Ça permet de tester le reste du circuit (site, base de
- * données, tableau de bord Gérant) avant d'avoir la clé en main — mais
- * aucune qualification ni rendez-vous n'est simulé : ce serait inventer des
- * données, ce que l'agent ne doit jamais faire même en mode démonstration.
- */
-const REPONSE_SANS_CLE =
-  "Mode démonstration (clé Claude non configurée) : votre message a bien été reçu et enregistré. " +
-  "Une fois ANTHROPIC_API_KEY renseignée, je pourrai vraiment répondre à partir de la fiche offre F&T.";
-
 export async function jouerTourAgent(params: {
+  mission: Mission;
   systemPrompt: string;
   historique: MessageConversation[];
   executeurOutil: ExecuteurOutil;
 }): Promise<TourAgentResult> {
+  const { mission, systemPrompt, executeurOutil } = params;
+
   if (!process.env.ANTHROPIC_API_KEY) {
-    return { texte: REPONSE_SANS_CLE, appelsOutils: [] };
+    return { texte: mission.reponseSansCle, appelsOutils: [] };
   }
 
-  const { systemPrompt, executeurOutil } = params;
   const messages: Anthropic.MessageParam[] = params.historique.map((m) => ({
     role: m.role,
     content: m.content,
@@ -63,7 +54,7 @@ export async function jouerTourAgent(params: {
       model: MODELE,
       max_tokens: MAX_TOKENS,
       system: systemPrompt,
-      tools: OUTILS_PROSPECTION,
+      tools: mission.outils,
       messages,
     });
 
@@ -92,9 +83,5 @@ export async function jouerTourAgent(params: {
     messages.push({ role: "user", content: resultats });
   }
 
-  return {
-    texte:
-      "Je transmets votre demande à un membre de l'équipe F&T, qui revient vers vous rapidement.",
-    appelsOutils,
-  };
+  return { texte: mission.reponseSiTropDeTours, appelsOutils };
 }

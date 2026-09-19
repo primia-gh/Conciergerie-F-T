@@ -33,6 +33,7 @@ export async function mettreAJourFicheOffre(
   const { data: derniere } = await supabase
     .from("fiche_connaissance")
     .select("version")
+    .eq("activite", "ft")
     .is("logement_id", null)
     .eq("section", "offre_ft")
     .order("version", { ascending: false })
@@ -40,6 +41,7 @@ export async function mettreAJourFicheOffre(
     .maybeSingle();
 
   const { error } = await supabase.from("fiche_connaissance").insert({
+    activite: "ft",
     logement_id: null,
     section: "offre_ft",
     contenu: parsed.data.contenu,
@@ -50,6 +52,7 @@ export async function mettreAJourFicheOffre(
   if (error) return { error: error.message };
 
   await ecrireAuJournal({
+    activite: "ft",
     type: "mise_a_jour_fiche_offre",
     entiteType: "fiche_connaissance",
     decision: "Fiche offre F&T modifiée par le gérant",
@@ -82,6 +85,7 @@ export async function changerNiveauAutonomie(regleId: string, formData: FormData
 
   if (avant && avant.niveau_autonomie !== niveau) {
     await ecrireAuJournal({
+      activite: "ft",
       type: "changement_autonomie",
       entiteType: "regle",
       entiteId: regleId,
@@ -109,6 +113,7 @@ export async function changerStatutProprietaire(
   await supabase.from("proprietaire").update({ statut }).eq("id", proprietaireId);
 
   await ecrireAuJournal({
+    activite: "ft",
     type: "changement_statut_proprietaire",
     entiteType: "proprietaire",
     entiteId: proprietaireId,

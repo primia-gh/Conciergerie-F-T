@@ -8,6 +8,7 @@ export default async function AdminFtOffrePage() {
   const { data: fiche } = await supabase
     .from("fiche_connaissance")
     .select("contenu, version, updated_at")
+    .eq("activite", "ft")
     .is("logement_id", null)
     .eq("section", "offre_ft")
     .order("version", { ascending: false })

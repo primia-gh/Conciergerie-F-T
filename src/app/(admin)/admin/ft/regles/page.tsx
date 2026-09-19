@@ -32,6 +32,7 @@ export default async function AdminFtReglesPage() {
   const { data: regles } = await supabase
     .from("regle")
     .select("id, domaine, tache, condition, action_autorisee, niveau_autonomie, actif")
+    .eq("activite", "ft")
     .eq("actif", true)
     .order("domaine")
     .order("tache")
