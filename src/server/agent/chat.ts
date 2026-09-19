@@ -7,6 +7,7 @@ import { checkRateLimit } from "@/server/security/rate-limit";
 import { buildPromptProspectProprietaire } from "@/lib/agent/prompt";
 import { jouerTourAgent, type MessageConversation } from "@/lib/agent/core";
 import { alerterGerant } from "@/lib/agent/alert";
+import { chatProspectionActif } from "@/lib/agent/flags";
 import { ecrireAuJournal } from "@/lib/agent/journal";
 import { prochainsCreneauxDisponibles, formatCreneauxPourPrompt } from "@/server/agent/agenda";
 
@@ -30,6 +31,16 @@ export async function envoyerMessageProprietaire(input: {
   message: string;
   bienProspectId?: string;
 }): Promise<ChatProspectResult> {
+  // Garde ici, dans l'action serveur, et pas seulement sur la page : une
+  // action serveur reste appelable directement sans passer par l'interface.
+  if (!chatProspectionActif()) {
+    return {
+      ok: false,
+      error:
+        "Le chat est momentanément indisponible. Merci de nous contacter directement.",
+    };
+  }
+
   const parsed = inputSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Message invalide." };

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { chatProspectionActif } from "@/lib/agent/flags";
 import { ChatWidget } from "./_components/chat-widget";
 
 const description =
@@ -24,7 +25,14 @@ export default function ProprietairesPage() {
           assistant, il répond à vos questions et vous propose un rendez-vous si ça correspond.
         </p>
       </div>
-      <ChatWidget />
+      {chatProspectionActif() ? (
+        <ChatWidget />
+      ) : (
+        <p className="w-full max-w-xl rounded-sm border border-border bg-surface p-4 text-center text-sm text-fg-muted">
+          Notre assistant est momentanément indisponible. Merci de nous contacter directement,
+          nous revenons vers vous rapidement.
+        </p>
+      )}
     </div>
   );
 }
