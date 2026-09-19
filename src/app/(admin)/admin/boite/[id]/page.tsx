@@ -12,6 +12,7 @@ type DemandeRow = {
   activite: "ft" | "premium";
   statut: "nouveau" | "brouillon_pret" | "valide" | "corrige" | "escalade";
   expediteur: string | null;
+  logement: { nom: string } | { nom: string }[] | null;
   contenu_recu: string;
   langue: string | null;
   brouillon: string | null;
@@ -41,7 +42,7 @@ export default async function AdminBoiteDemandePage({ params }: PageProps<"/admi
   const { data: demande } = await supabase
     .from("demande")
     .select(
-      "id, activite, statut, expediteur, contenu_recu, langue, brouillon, reponse_finale, motif_escalade, categorie_escalade, escalade_urgente, fiches_utilisees, traite_le, created_at",
+      "id, activite, statut, expediteur, logement:logement_id(nom), contenu_recu, langue, brouillon, reponse_finale, motif_escalade, categorie_escalade, escalade_urgente, fiches_utilisees, traite_le, created_at",
     )
     .eq("id", id)
     .maybeSingle<DemandeRow>();
@@ -51,6 +52,7 @@ export default async function AdminBoiteDemandePage({ params }: PageProps<"/admi
   const estEscalade = demande.statut === "escalade";
   const traitee = demande.traite_le !== null;
   const fiches = Array.isArray(demande.fiches_utilisees) ? demande.fiches_utilisees : [];
+  const logement = Array.isArray(demande.logement) ? demande.logement[0] : demande.logement;
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
@@ -60,6 +62,7 @@ export default async function AdminBoiteDemandePage({ params }: PageProps<"/admi
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Badge variant="neutral">{ACTIVITE_LIBELLE[demande.activite]}</Badge>
+        {logement && <Badge variant="accent">{logement.nom}</Badge>}
         <span className="text-sm text-fg-muted">
           {demande.expediteur ?? "Expéditeur non précisé"} ·{" "}
           {new Date(demande.created_at).toLocaleString("fr-FR")}

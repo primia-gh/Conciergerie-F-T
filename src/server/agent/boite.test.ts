@@ -119,6 +119,7 @@ describe("creerDemande", () => {
     const insertion = operations.find((o) => o.op === "insert")!;
     expect(insertion.payload).toEqual({
       activite: "ft",
+      logement_id: null,
       expediteur: "Marie",
       contenu_recu: "Quel est le wifi ?",
       statut: "nouveau",
@@ -173,6 +174,58 @@ describe("creerDemande", () => {
     expect(ecrireAuJournal).toHaveBeenCalledWith(
       expect.objectContaining({ resultat: "erreur", justification: "API indisponible" }),
     );
+  });
+
+  describe("avec un logement", () => {
+    const LOGEMENT = "44444444-4444-4444-8444-444444444444";
+    const champs = { activite: "ft", logementId: LOGEMENT, contenu: "Le wifi ne marche pas" };
+
+    it("refuse un logement introuvable, sans rien enregistrer ni appeler l'assistant", async () => {
+      const operations = fakeDb({ select: { data: null } });
+
+      const etat = await creerDemande(etatInitial, formulaire(champs));
+
+      expect(etat.error).toBe("Logement introuvable.");
+      expect(operations.some((o) => o.op === "insert")).toBe(false);
+      expect(preparerReponseAssistant).not.toHaveBeenCalled();
+    });
+
+    it("refuse un logement non activé, côté serveur (pas seulement dans la liste proposée)", async () => {
+      const operations = fakeDb({ select: { data: { id: LOGEMENT, statut: "inactif" } } });
+
+      const etat = await creerDemande(etatInitial, formulaire(champs));
+
+      expect(etat.error).toContain("n'est pas activé");
+      expect(operations.some((o) => o.op === "insert")).toBe(false);
+      expect(preparerReponseAssistant).not.toHaveBeenCalled();
+    });
+
+    it("refuse un logement pour Premium avant même de lire la base", async () => {
+      const etat = await creerDemande(etatInitial, formulaire({ ...champs, activite: "premium" }));
+
+      expect(etat.error).toBe("Un logement n'existe que pour F&T.");
+      expect(createServiceClient).not.toHaveBeenCalled();
+    });
+
+    it("avec un logement activé : l'enregistre sur la demande et le confie à l'assistant", async () => {
+      const operations = fakeDb({
+        select: { data: { id: LOGEMENT, statut: "actif" } },
+        insert: { data: { id: ID }, error: null },
+        update: { error: null },
+      });
+      preparerReponseAssistant.mockResolvedValue({ mode: "demo", information: "démo" });
+
+      await expect(creerDemande(etatInitial, formulaire(champs))).rejects.toThrow(`REDIRECT:/admin/boite/${ID}`);
+
+      expect(operations.find((o) => o.op === "insert")!.payload).toMatchObject({
+        activite: "ft",
+        logement_id: LOGEMENT,
+      });
+      expect(preparerReponseAssistant).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ activite: "ft", logementId: LOGEMENT }),
+      );
+    });
   });
 
   it("renvoie une erreur si la demande ne peut pas être enregistrée, sans appeler l'assistant", async () => {

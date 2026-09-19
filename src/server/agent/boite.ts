@@ -32,21 +32,42 @@ export async function creerDemande(_prevState: FormState, formData: FormData): P
 
   const parsed = nouvelleDemandeSchema.safeParse({
     activite: formData.get("activite") ?? undefined,
+    logementId: formData.get("logementId") ?? undefined,
     expediteur: formData.get("expediteur") ?? undefined,
     contenu: formData.get("contenu") ?? "",
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
   }
-  const { activite, expediteur, contenu } = parsed.data;
+  const { activite, logementId, expediteur, contenu } = parsed.data;
 
   const supabase = createServiceClient();
+
+  // Vérifié côté serveur, pas seulement dans la liste proposée : seul un logement
+  // ACTIVÉ (fiche complète) peut être confié à l'assistant.
+  if (logementId) {
+    const { data: logement } = await supabase
+      .from("logement")
+      .select("id, statut")
+      .eq("id", logementId)
+      .maybeSingle();
+    if (!logement) return { error: "Logement introuvable." };
+    if (logement.statut !== "actif") {
+      return { error: "Ce logement n'est pas activé : complétez sa fiche puis activez-le." };
+    }
+  }
 
   // Le message est enregistré AVANT tout traitement : si l'assistant plante,
   // la demande n'est pas perdue (cahier des charges, § Règles communes aux canaux).
   const { data: demande, error: erreurCreation } = await supabase
     .from("demande")
-    .insert({ activite, expediteur, contenu_recu: contenu, statut: "nouveau" })
+    .insert({
+      activite,
+      logement_id: logementId,
+      expediteur,
+      contenu_recu: contenu,
+      statut: "nouveau",
+    })
     .select("id")
     .single();
   if (erreurCreation || !demande) {
@@ -61,6 +82,7 @@ export async function creerDemande(_prevState: FormState, formData: FormData): P
       activite,
       contenuRecu: contenu,
       expediteur,
+      logementId,
     });
     miseAJour = miseAJourApresPreparation(preparation);
   } catch (e) {

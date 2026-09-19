@@ -39,6 +39,13 @@ function badgeStatut(d: DemandeRow) {
 export default async function AdminBoitePage() {
   const supabase = await createClient();
 
+  const { data: logements } = await supabase
+    .from("logement")
+    .select("id, nom")
+    .eq("statut", "actif")
+    .order("nom")
+    .returns<{ id: string; nom: string }[]>();
+
   const { data: demandes } = await supabase
     .from("demande")
     .select(
@@ -58,7 +65,7 @@ export default async function AdminBoitePage() {
 
       <Card className="mt-8">
         <CardContent className="pt-5">
-          <NouvelleDemandeForm />
+          <NouvelleDemandeForm logements={logements ?? []} />
         </CardContent>
       </Card>
 

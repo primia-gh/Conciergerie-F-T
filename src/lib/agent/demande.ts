@@ -12,25 +12,38 @@ export function normaliserSautsDeLigne(texte: string): string {
   return texte.replace(/\r\n?/g, "\n");
 }
 
-export const nouvelleDemandeSchema = z.object({
-  activite: z.enum(["ft", "premium"], { message: "Choisissez F&T ou Premium." }),
-  expediteur: z
-    .string()
-    .trim()
-    .max(100, "L'expéditeur est trop long (100 caractères maximum).")
-    .optional()
-    .transform((v) => (v ? v : null)),
-  contenu: z
-    .string()
-    .transform(normaliserSautsDeLigne)
-    .pipe(
-      z
-        .string()
-        .trim()
-        .min(1, "Collez le message reçu.")
-        .max(LONGUEUR_MAX_MESSAGE, `Le message est trop long (${LONGUEUR_MAX_MESSAGE} caractères maximum).`),
-    ),
-});
+export const nouvelleDemandeSchema = z
+  .object({
+    activite: z.enum(["ft", "premium"], { message: "Choisissez F&T ou Premium." }),
+    // Facultatif, F&T seulement : l'assistant lira aussi les fiches de ce logement.
+    logementId: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (v ? v : null))
+      .pipe(z.string().uuid("Logement invalide.").nullable()),
+    expediteur: z
+      .string()
+      .trim()
+      .max(100, "L'expéditeur est trop long (100 caractères maximum).")
+      .optional()
+      .transform((v) => (v ? v : null)),
+    contenu: z
+      .string()
+      .transform(normaliserSautsDeLigne)
+      .pipe(
+        z
+          .string()
+          .trim()
+          .min(1, "Collez le message reçu.")
+          .max(LONGUEUR_MAX_MESSAGE, `Le message est trop long (${LONGUEUR_MAX_MESSAGE} caractères maximum).`),
+      ),
+  })
+  .superRefine((valeur, ctx) => {
+    if (valeur.logementId && valeur.activite !== "ft") {
+      ctx.addIssue({ code: "custom", path: ["logementId"], message: "Un logement n'existe que pour F&T." });
+    }
+  });
 
 export const LIBELLES_ESCALADE: Record<CategorieEscalade, string> = {
   urgence_securite: "Urgence ou sécurité",

@@ -17,7 +17,31 @@ describe("nouvelleDemandeSchema", () => {
       contenu: "  Bonjour\r\nMerci  ",
     });
 
-    expect(r).toEqual({ activite: "premium", expediteur: null, contenu: "Bonjour\nMerci" });
+    expect(r).toEqual({ activite: "premium", logementId: null, expediteur: null, contenu: "Bonjour\nMerci" });
+  });
+
+  it("accepte un logement pour F&T, refuse un identifiant qui n'est pas un UUID", () => {
+    const logementId = "11111111-1111-4111-8111-111111111111";
+
+    expect(nouvelleDemandeSchema.parse({ activite: "ft", logementId, contenu: "Bonjour" }).logementId).toBe(logementId);
+    expect(nouvelleDemandeSchema.safeParse({ activite: "ft", logementId: "abc", contenu: "Bonjour" }).success).toBe(
+      false,
+    );
+  });
+
+  it("traite une chaîne vide comme « pas de logement »", () => {
+    expect(nouvelleDemandeSchema.parse({ activite: "ft", logementId: "", contenu: "Bonjour" }).logementId).toBeNull();
+  });
+
+  it("refuse un logement pour Premium", () => {
+    const r = nouvelleDemandeSchema.safeParse({
+      activite: "premium",
+      logementId: "11111111-1111-4111-8111-111111111111",
+      contenu: "Bonjour",
+    });
+
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues[0]!.message).toBe("Un logement n'existe que pour F&T.");
   });
 
   it("refuse « commun » : une demande appartient toujours à une activité", () => {
