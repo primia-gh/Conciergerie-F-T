@@ -44,6 +44,31 @@ export const enregistrerFicheSchema = z
     }
   });
 
+/**
+ * « Ajouter cette information à la fiche » depuis une demande traitée. La
+ * cible s'écrit `globale:<section>` (fiche générale de l'activité) ou
+ * `logement:<section>` (fiche du logement de la demande) : le logement n'est
+ * jamais donné par le formulaire, il vient de la demande elle-même.
+ */
+export const ajoutFicheSchema = z.object({
+  cible: z
+    .string()
+    .regex(/^(globale|logement):[a-z_]+$/, "Choisissez la fiche à enrichir.")
+    .transform((valeur) => {
+      const [portee, section] = valeur.split(":") as ["globale" | "logement", string];
+      return { portee, section };
+    }),
+  ligne: z
+    .string()
+    .transform(normaliserContenuFiche)
+    .pipe(
+      z
+        .string()
+        .min(1, "Écrivez l'information à ajouter.")
+        .max(2000, "Trop long : gardez une information courte, par ligne."),
+    ),
+});
+
 export const nouveauLogementSchema = z
   .object({
     nom: z

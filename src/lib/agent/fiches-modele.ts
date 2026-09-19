@@ -159,6 +159,37 @@ export function detecterCodesProbables(contenu: string): string[] {
     .map((l) => (l.length > 80 ? `${l.slice(0, 79)}…` : l));
 }
 
+export type AjoutLigne = { ok: true; contenu: string } | { ok: false; error: string };
+
+/**
+ * Ajoute une information à la fin d'une fiche. Refuse ce qui est déjà présent
+ * (comparaison sans tenir compte des majuscules ni des espaces autour) et ce
+ * qui ferait dépasser la longueur maximale : une fiche reste courte.
+ */
+export function ajouterLigne(contenuActuel: string | null, ligne: string): AjoutLigne {
+  const nouvelle = normaliserContenuFiche(ligne);
+  if (!nouvelle) return { ok: false, error: "La ligne à ajouter est vide." };
+
+  const actuel = normaliserContenuFiche(contenuActuel ?? "");
+  const existantes = new Set(actuel.split("\n").map((l) => l.trim().toLowerCase()));
+  const nouvellesLignes = nouvelle
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (nouvellesLignes.every((l) => existantes.has(l.toLowerCase()))) {
+    return { ok: false, error: "Cette information figure déjà dans la fiche." };
+  }
+
+  const contenu = actuel ? `${actuel}\n${nouvelle}` : nouvelle;
+  if (contenu.length > LONGUEUR_MAX_FICHE) {
+    return {
+      ok: false,
+      error: `La fiche deviendrait trop longue (${LONGUEUR_MAX_FICHE} caractères maximum). Raccourcissez-la d'abord.`,
+    };
+  }
+  return { ok: true, contenu };
+}
+
 /**
  * Ne garde que la dernière version de chaque section, à partir de lignes de
  * UNE même portée (un logement, ou les fiches globales d'une activité).

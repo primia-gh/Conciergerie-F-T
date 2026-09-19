@@ -9,12 +9,14 @@ import { assertRole } from "@/server/auth/guards";
 import { ecrireAuJournal } from "@/lib/agent/journal";
 import type { ActiviteMetier } from "@/lib/agent/types";
 import {
+  ajouterLigne,
   completudeLogement,
   dernieresVersions,
   detecterCodesProbables,
   normaliserContenuFiche,
+  trouverSection,
 } from "@/lib/agent/fiches-modele";
-import { enregistrerFicheSchema, nouveauLogementSchema } from "@/lib/agent/fiches-saisie";
+import { ajoutFicheSchema, enregistrerFicheSchema, nouveauLogementSchema } from "@/lib/agent/fiches-saisie";
 
 export type FicheFormState = {
   error: string | null;
@@ -70,6 +72,7 @@ async function insererVersion(
 
 function rafraichirFiches() {
   revalidatePath("/admin/fiches", "layout");
+  revalidatePath("/admin/boite", "layout");
 }
 
 /**
@@ -168,6 +171,73 @@ export async function restaurerVersion(ficheId: string): Promise<FicheFormState>
 
   rafraichirFiches();
   return { error: null, success: true, avertissements: detecterCodesProbables(contenu) };
+}
+
+/**
+ * « Ajouter cette information à la fiche » : après avoir corrigé un brouillon
+ * ou repris la main sur une escalade, le Gérant transforme ce qu'il a appris en
+ * une ligne de fiche. L'information est ajoutée à la fin de la dernière
+ * version, ce qui crée une nouvelle version.
+ *
+ * La fiche visée est toujours cohérente avec la demande : son activité, et son
+ * logement — jamais un logement donné par le formulaire.
+ */
+export async function ajouterALaFiche(
+  demandeId: string,
+  _prevState: FicheFormState,
+  formData: FormData,
+): Promise<FicheFormState> {
+  await assertRole("admin");
+
+  if (!uuidSchema.safeParse(demandeId).success) return { error: "Demande introuvable." };
+
+  const parsed = ajoutFicheSchema.safeParse({
+    cible: formData.get("cible") ?? "",
+    ligne: formData.get("ligne") ?? "",
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
+  const { cible, ligne } = parsed.data;
+
+  const supabase = await createClient();
+  const { data: demande } = await supabase
+    .from("demande")
+    .select("id, activite, logement_id, statut, traite_le")
+    .eq("id", demandeId)
+    .maybeSingle();
+  if (!demande) return { error: "Demande introuvable." };
+  if (!demande.traite_le || (demande.statut !== "corrige" && demande.statut !== "escalade")) {
+    return { error: "Cette demande n'appelle pas d'ajout à une fiche." };
+  }
+
+  const activite = demande.activite as ActiviteMetier;
+  const logementId = cible.portee === "logement" ? ((demande.logement_id as string | null) ?? null) : null;
+  if (cible.portee === "logement" && !logementId) return { error: "Cette demande n'a pas de logement." };
+
+  if (!trouverSection(activite, cible.portee, cible.section)) {
+    return { error: "Cette section n'existe pas pour cette fiche." };
+  }
+
+  const portee: Portee = { activite, logementId, section: cible.section };
+  const precedente = await derniereVersion(supabase, portee);
+  const ajout = ajouterLigne(precedente?.contenu ?? null, ligne);
+  if (!ajout.ok) return { error: ajout.error };
+
+  const resultat = await insererVersion(supabase, portee, ajout.contenu, precedente);
+  if (!resultat.ok) {
+    return { error: resultat.conflit ? MESSAGE_CONFLIT : "Impossible d'enregistrer, réessayez." };
+  }
+
+  await ecrireAuJournal({
+    activite,
+    type: "ajout_a_la_fiche",
+    entiteType: "fiche_connaissance",
+    entiteId: resultat.id,
+    decision: `Information ajoutée à la section « ${cible.section} » (version ${resultat.version}) depuis la demande ${demandeId}`,
+    auteur: "gerant",
+  });
+
+  rafraichirFiches();
+  return { error: null, success: true, avertissements: detecterCodesProbables(ligne) };
 }
 
 /**

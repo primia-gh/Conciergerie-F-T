@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LIBELLES_ESCALADE } from "@/lib/agent/demande";
 import type { CategorieEscalade } from "@/lib/agent/missions/assistant-gerant/outils";
+import { sectionsPour } from "@/lib/agent/fiches-modele";
+import { AjoutFicheForm } from "./ajout-fiche-form";
 import { ClotureForm } from "./cloture-form";
 
 type DemandeRow = {
@@ -12,6 +14,7 @@ type DemandeRow = {
   activite: "ft" | "premium";
   statut: "nouveau" | "brouillon_pret" | "valide" | "corrige" | "escalade";
   expediteur: string | null;
+  logement_id: string | null;
   logement: { nom: string } | { nom: string }[] | null;
   contenu_recu: string;
   langue: string | null;
@@ -42,7 +45,7 @@ export default async function AdminBoiteDemandePage({ params }: PageProps<"/admi
   const { data: demande } = await supabase
     .from("demande")
     .select(
-      "id, activite, statut, expediteur, logement:logement_id(nom), contenu_recu, langue, brouillon, reponse_finale, motif_escalade, categorie_escalade, escalade_urgente, fiches_utilisees, traite_le, created_at",
+      "id, activite, statut, expediteur, logement_id, logement:logement_id(nom), contenu_recu, langue, brouillon, reponse_finale, motif_escalade, categorie_escalade, escalade_urgente, fiches_utilisees, traite_le, created_at",
     )
     .eq("id", id)
     .maybeSingle<DemandeRow>();
@@ -53,6 +56,23 @@ export default async function AdminBoiteDemandePage({ params }: PageProps<"/admi
   const traitee = demande.traite_le !== null;
   const fiches = Array.isArray(demande.fiches_utilisees) ? demande.fiches_utilisees : [];
   const logement = Array.isArray(demande.logement) ? demande.logement[0] : demande.logement;
+
+  // Une réponse corrigée, ou une escalade reprise à la main, signale peut-être une
+  // fiche incomplète. Les fiches proposées sont celles de CETTE demande : son
+  // activité, et son logement s'il y en a un.
+  const proposerAjout = traitee && (demande.statut === "corrige" || demande.statut === "escalade");
+  const optionsAjout = [
+    ...sectionsPour(demande.activite, "globale").map((s) => ({
+      value: `globale:${s.cle}`,
+      label: `Fiche générale ${ACTIVITE_LIBELLE[demande.activite]} — ${s.libelle}`,
+    })),
+    ...(demande.logement_id && logement
+      ? sectionsPour(demande.activite, "logement").map((s) => ({
+          value: `logement:${s.cle}`,
+          label: `${logement.nom} — ${s.libelle}`,
+        }))
+      : []),
+  ];
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
@@ -132,6 +152,14 @@ export default async function AdminBoiteDemandePage({ params }: PageProps<"/admi
           )}
         </CardContent>
       </Card>
+
+      {proposerAjout && (
+        <AjoutFicheForm
+          demandeId={demande.id}
+          options={optionsAjout}
+          ligneInitiale={demande.reponse_finale ?? ""}
+        />
+      )}
 
       {fiches.length > 0 && (
         <p className="mt-6 text-sm text-fg-muted">
