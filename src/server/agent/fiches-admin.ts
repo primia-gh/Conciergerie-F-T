@@ -70,7 +70,6 @@ async function insererVersion(
 
 function rafraichirFiches() {
   revalidatePath("/admin/fiches", "layout");
-  revalidatePath("/admin/ft/offre");
 }
 
 /**

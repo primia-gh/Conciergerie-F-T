@@ -22,6 +22,9 @@ export default async function AdminSpaceLayout({ children }: { children: ReactNo
           <Link href="/admin/boite" className="text-sm text-fg-muted hover:text-fg">
             Boîte de réception
           </Link>
+          <Link href="/admin/fiches" className="text-sm text-fg-muted hover:text-fg">
+            Fiches
+          </Link>
           <Link href="/admin/ft" className="text-sm text-fg-muted hover:text-fg">
             Agent F&amp;T
           </Link>

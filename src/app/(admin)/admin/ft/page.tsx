@@ -36,7 +36,7 @@ export default async function AdminFtProspectsPage() {
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-medium text-fg">Prospects F&amp;T</h1>
         <div className="flex gap-4 text-sm">
-          <Link href="/admin/ft/offre" className="text-fg-muted hover:text-fg">
+          <Link href="/admin/fiches/ft/offre_ft" className="text-fg-muted hover:text-fg">
             Fiche offre
           </Link>
           <Link href="/admin/ft/regles" className="text-fg-muted hover:text-fg">
