@@ -44,10 +44,31 @@ Vercel (Production + Preview séparément si les valeurs diffèrent) :
 |---|---|
 | `NEXT_PUBLIC_APP_URL` | URL de production réelle |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Projet Supabase **production** |
-| `SUPABASE_SERVICE_ROLE_KEY` | Projet Supabase production — nécessaire si la révocation immédiate de session à la suppression de compte est implémentée avant le lancement (voir SECURITY.md §10) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Projet Supabase production — **requise par l'Agent IA** (journal, lecture des fiches, tâche planifiée) ; sert aussi à la révocation de session si elle est implémentée (voir SECURITY.md §10 et §11) |
 | `DATABASE_URL` | Connexion Postgres directe, pour Drizzle (migrations uniquement, jamais le runtime applicatif) |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Compte Stripe, clés **live** |
 | `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS` | Compte Resend, domaine d'envoi vérifié |
+| `ANTHROPIC_API_KEY` | Agent IA : clé du modèle, côté serveur uniquement. Sans elle, mode démonstration (aucun brouillon simulé) |
+| `GERANT_ALERT_EMAIL` | Agent IA : adresse qui reçoit les alertes du chat de prospection (facultative) |
+| `CRON_SECRET` | Agent IA : protège `/api/cron/relances` (générée par Vercel pour les tâches planifiées) |
+| `CHAT_PROSPECTION_ACTIF` | Agent IA : laisser **vide** (chat public désactivé) tant que la limite de débit n'est pas partagée — voir SECURITY.md §6 |
+
+### Déployer l'Agent IA (branche `v2-assistant-gerant`)
+
+À faire **dans cet ordre**, la branche n'étant pas encore fusionnée :
+
+1. Décider quelle base alimente le site en ligne (`concierge-app-prod` est en pause à ce jour).
+2. Appliquer à cette base les migrations `0015` à `0026`, dans l'ordre, puis rejouer
+   `test/securite/rls-audit.sql` et `test/securite/journal-immuable.sql`. **Déployer le code avant
+   les migrations ferait planter le site** sur les colonnes manquantes.
+3. Renseigner les variables ci-dessus dans Vercel.
+4. Fusionner la branche. À noter : `vercel.json` déclare une tâche planifiée **horaire**
+   (`/api/cron/relances`) qui démarre dès le déploiement, même chat coupé. Elle ne concerne que les
+   prospects existants ayant laissé un e-mail et n'appelle pas le modèle.
+5. Ne pas oublier : aucune vraie fiche n'existe encore, l'assistant escaladera tout tant qu'elles
+   ne sont pas saisies (`/admin/fiches`).
+
+Guide complet : `docs/exploitation-agent.md`.
 
 **Ne jamais** committer ces valeurs — les saisir uniquement dans l'interface Vercel (ou son
 équivalent).

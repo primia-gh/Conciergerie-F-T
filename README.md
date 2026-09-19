@@ -11,6 +11,13 @@ Plateforme de conciergerie premium — SaaS mettant en relation clients, concier
 - [DATABASE.md](DATABASE.md) — schéma de données complet
 - [ROADMAP.md](ROADMAP.md) — séquence de développement du MVP (jalons M0 → M16)
 
+**Agent IA F&T (assistant du Gérant)** — un second produit, sur le même site et le même compte admin :
+
+- [CLAUDE.md](CLAUDE.md) — consignes de travail et **état d'avancement** de l'agent
+- [docs/cahier-des-charges-v2.md](docs/cahier-des-charges-v2.md) — objectif, décisions, critères d'acceptation, questions ouvertes
+- [docs/exploitation-agent.md](docs/exploitation-agent.md) — faire tourner, tester, migrer, mettre en service
+- [DECISIONS.md](DECISIONS.md), [SECURITY.md](SECURITY.md) §11, [DATABASE.md](DATABASE.md) §2 bis — décisions, sécurité, tables de l'agent
+
 ## Stack
 
 Next.js 16 (App Router, TypeScript) · Tailwind CSS · Supabase (Postgres, Auth, Storage, Realtime) · Drizzle ORM · Stripe · Resend · Vercel · GitHub Actions.
@@ -43,6 +50,8 @@ docker compose up -d
 | `npm run build` | Build de production |
 | `npm run start` | Sert le build de production |
 | `npm run lint` | ESLint |
+| `npm test` | Tests automatiques (Vitest) |
+| `npm run eval:securite` | Évalue le vrai modèle contre 15 manipulations (Agent IA ; coûte quelques centimes, exige `ANTHROPIC_API_KEY`) |
 
 ## Comptes de test (dev uniquement)
 

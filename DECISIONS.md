@@ -140,3 +140,97 @@ explicite (voir SECURITY.md §5) plutôt que shippé silencieusement comme une C
 l'est pas vraiment.
 
 **Conséquence** : item de durcissement identifié pour un futur cycle, pas fermé définitivement.
+
+---
+
+# Agent IA — assistant du Gérant (version 2, 2026-09-19)
+
+Décisions prises en construisant l'agent. Contexte : `docs/cahier-des-charges-v2.md`.
+
+## Exception à « aucun usage de la clé service role » : l'agent
+
+**Contexte** : la décision plus haut interdit la clé service role dans le code applicatif. L'agent
+agit sans session utilisateur (tâche planifiée) et doit écrire un journal que personne ne peut
+altérer.
+
+**Décision** : `createServiceClient()` (`src/lib/supabase/service.ts`) est utilisée par l'agent
+(`src/lib/agent/`, `src/server/agent/boite.ts`) et par `/api/cron/relances`, **uniquement après
+`assertRole("admin")`** dans chaque action. Les actions du Gérant sur les fiches et les logements
+(`fiches-admin.ts`, `ft-admin.ts`) restent sur la session du Gérant, donc sous RLS.
+
+**Conséquence** : pour l'agent, la RLS n'est plus la seule barrière. Compensations : un test échoue
+si une action serveur est ajoutée sans exiger le rôle admin (`securite-roles.test.ts`), le journal
+est verrouillé en base, et l'audit `test/securite/rls-audit.sql` reste rejouable. La décision
+d'origine vaut toujours pour Conciergerie Premium.
+
+## Assistant d'abord, agent autonome plus tard
+
+**Décision** : l'assistant prépare un brouillon, le Gérant l'envoie lui-même ; toutes les tâches
+sont au niveau « Propose ». **Pourquoi** : un assistant qui se trompe donne une mauvaise réponse,
+un agent qui se trompe peut envoyer le mauvais message. L'autonomie se mérite tâche par tâche
+(seuils du cahier d'origine) et n'est pas activée.
+
+## Une colonne `activite` plutôt que deux schémas
+
+**Contexte** : F&T et Premium doivent coexister avec un seul compte Gérant et un seul cœur d'agent.
+
+**Décision** : une colonne `activite` sur `regle`, `fiche_connaissance`, `message_agent`, `action`,
+`demande`, **sans valeur par défaut** (migration `0024`). Les tables de Premium ne sont pas touchées.
+
+**Pourquoi pas de défaut** : un défaut `ft` aurait étiqueté « F&T » toute ligne Premium écrite par
+oubli. Sans défaut, l'oubli devient une erreur immédiate.
+
+## Les fiches sont chargées par le code, pas lues par le modèle
+
+**Contexte** : le plan initial prévoyait un outil « lire les fiches ».
+
+**Décision** : le code charge les fiches de l'activité (et du logement) choisies et les place dans
+le prompt ; le modèle n'a que `proposer_reponse` et `escalader`. **Pourquoi** : le modèle ne peut
+alors pas être amené à lire les fiches de l'autre activité ou d'un autre logement, et il y a un
+appel de moins par message. Un second contrôle côté code écarte de toute façon une fiche hors
+périmètre si la base en renvoyait une.
+
+## Codes d'accès : hors des fiches, masqués avant le modèle, filtrés en sortie
+
+**Contexte** : le cahier d'origine réserve les codes à une table chiffrée, « jamais injectée telle
+quelle dans un message du modèle ». Une simple consigne du prompt ne suffit pas face à une
+manipulation.
+
+**Décision** : trois couches. (1) L'éditeur de fiches avertit quand une ligne ressemble à un code.
+(2) Une telle ligne est masquée avant d'être donnée au modèle. (3) Un brouillon qui contient un code
+est retiré et remplacé par une escalade. **Limite assumée** : l'heuristique peut masquer à tort une
+ligne légitime ; l'assistant escalade alors, ce qui est sans danger. Le mot de passe wifi est traité
+comme un code (cahier d'origine) : question ouverte dans la version 2.
+
+## Données bancaires : masquées à l'entrée, avec clé de contrôle
+
+**Contexte** : « aucune donnée bancaire ne transite par l'agent », et la page `/confidentialite`
+affirme qu'aucune n'est stockée. Un message collé peut pourtant en contenir.
+
+**Décision** : cartes (13 à 19 chiffres, clé de Luhn) et IBAN (modulo 97) sont remplacés par un
+repère **avant l'enregistrement** dans `demande` et avant le modèle. La clé de contrôle évite de
+masquer les numéros de téléphone ou de réservation ordinaires. Un numéro long qui passerait la clé
+par hasard est masqué à tort : préférable à laisser fuir une vraie carte.
+
+## Journal en écriture seule imposé par la base
+
+**Décision** : un déclencheur (`0023`) refuse `update`, `delete` et `truncate` sur `action`, même
+pour la clé de service. **Pourquoi** : « jamais modifiable » n'était qu'une convention (absence de
+policy), que la clé de service contourne. **Conséquence** : un effacement RGPD à la demande d'une
+personne devra désactiver ce déclencheur le temps de l'opération, puis le remettre.
+
+## Fiches : une ligne par version, jamais de mise à jour en place
+
+**Décision** : chaque modification, restauration ou ajout crée une nouvelle version ; l'unicité par
+section et version (`0026`) fait échouer un enregistrement simultané au lieu de le dupliquer.
+Restaurer une ancienne version crée une nouvelle version. « Chaque version est conservée »
+(cahier d'origine).
+
+## Chat public de prospection désactivé par défaut
+
+**Contexte** : chaque message appelle un modèle payant, et la limite de débit est en mémoire donc
+contournable sur Vercel (`SECURITY.md` §6).
+
+**Décision** : `CHAT_PROSPECTION_ACTIF` doit valoir exactement `true`. Le garde est dans l'action
+serveur (appelable directement, sans passer par l'écran), pas seulement sur la page. **Conséquence** :
+la page est prérendue, changer la variable exige un nouveau déploiement.

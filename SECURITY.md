@@ -42,10 +42,12 @@ signalé par l'advisor mais est un compromis assumé et documenté ci-dessus.
 
 - Aucun secret n'est commité : `.gitignore` exclut `.env*` (sauf `.env.example`, qui ne contient
   que des noms de variables vides).
-- `SUPABASE_SERVICE_ROLE_KEY` n'est **utilisée nulle part** dans le code applicatif actuel — toutes
-  les requêtes passent par le client Supabase standard (`@supabase/ssr`), qui respecte la RLS pour
-  chaque utilisateur. C'est un choix délibéré : bypasser la RLS côté serveur aurait rendu chaque
-  route responsable, à la main, de ne pas fuiter de données — la RLS le garantit structurellement.
+- `SUPABASE_SERVICE_ROLE_KEY` n'est **pas utilisée par Conciergerie Premium** : toutes ses requêtes
+  passent par le client Supabase standard (`@supabase/ssr`), qui respecte la RLS pour chaque
+  utilisateur. C'est un choix délibéré : bypasser la RLS côté serveur aurait rendu chaque route
+  responsable, à la main, de ne pas fuiter de données — la RLS le garantit structurellement.
+  **Exception assumée depuis le 2026-09-19 : l'Agent IA** (`src/lib/agent/`, `src/server/agent/boite.ts`,
+  `/api/cron/relances`) l'utilise, uniquement après `assertRole("admin")` — voir §11 et `DECISIONS.md`.
 - Aucune donnée bancaire n'est stockée : les paiements (M10, non branché faute de compte Stripe)
   utiliseraient exclusivement Stripe Checkout/Elements + webhooks signés.
 
@@ -94,6 +96,11 @@ production, remplacer par un store partagé (Upstash Redis + `@upstash/ratelimit
 natif de Vercel). Fonctionnel et vérifié tel quel pour un déploiement mono-instance (dev,
 `next start` sur une seule machine).
 
+Le chat public de prospection de l'Agent IA (`src/server/agent/chat.ts`) utilise le même compteur
+(8 messages/heure par IP pour une nouvelle conversation, 20 par conversation) et appelle en plus un
+modèle payant : ce contournement y a un coût financier. **C'est pourquoi il est désactivé par
+défaut** (`CHAT_PROSPECTION_ACTIF`, voir §11).
+
 ## 7. CSRF
 
 Next.js (App Router, Server Actions) vérifie nativement l'origine de la requête pour toute
@@ -141,3 +148,43 @@ Liste consolidée des compromis MVP explicitement documentés ci-dessus, à ne p
 - [ ] Configurer `SUPABASE_SERVICE_ROLE_KEY` pour permettre la révocation immédiate de session à
       la suppression de compte (`auth.admin.signOut`).
 - [ ] Brancher Stripe (M10) et Resend (M11, canal email) une fois les comptes/clés disponibles.
+- [ ] **Agent IA** : appliquer les migrations `0015` à `0026` à la base réellement utilisée par le
+      site, puis rejouer `test/securite/rls-audit.sql` et `journal-immuable.sql` (§11).
+- [ ] **Agent IA** : lancer `npm run eval:securite` avec la vraie clé Anthropic — les tests
+      automatiques ne prouvent pas que le vrai modèle résiste aux manipulations.
+- [ ] **Agent IA** : ne pas activer `CHAT_PROSPECTION_ACTIF` avant d'avoir remplacé la limite de
+      débit en mémoire par un store partagé (point ci-dessus).
+
+## 11. Agent IA (assistant du Gérant)
+
+Modèle de menace : l'assistant lit des messages écrits par des inconnus (voyageurs, clients) et
+détient des fiches. Un message peut chercher à obtenir un code, à se faire passer pour le
+propriétaire ou le Gérant, à extraire le prompt, ou à faire appeler des outils. Le principe : **ne pas
+compter sur le modèle pour se défendre**, et faire en sorte que, même détourné, il ne puisse rien
+faire de dangereux.
+
+| Couche | Mécanisme |
+|---|---|
+| Aucun pouvoir | L'assistant n'a que `proposer_reponse` et `escalader`. Ni envoi, ni lecture de la base, ni écriture. Un appel à tout autre outil est sans effet. |
+| Le message est une donnée | Jamais dans le prompt système ; balisé `<message_recu>` dans le tour utilisateur ; toute balise de ce nom (espaces, casse, retours à la ligne) est retirée ; l'étiquette d'expéditeur est aplatie et bornée. Taille limitée à 6 000 caractères. |
+| Périmètre de lecture | Le code, pas le modèle, charge les fiches : celles de l'activité choisie (et « commun »), et d'**un seul** logement activé. Un second contrôle côté code écarte toute fiche hors périmètre. Un identifiant de logement est validé (UUID) avant d'entrer dans un filtre. La table `secret_logement` n'est jamais lue. |
+| Rien ne sort | Une ligne de fiche qui ressemble à un code ou à un mot de passe est masquée avant le modèle. Un brouillon qui en contient — ou une donnée bancaire — est retiré et remplacé par une escalade. |
+| Données bancaires | Cartes (clé de Luhn) et IBAN (modulo 97) masqués avant l'enregistrement de la demande et avant le modèle. |
+| Sorties validées | Langue parmi les six prévues, catégorie d'escalade connue, longueur bornée ; sinon refus. Hors protocole, le code escalade lui-même en « doute ». |
+| Accès | Chaque action serveur commence par `assertRole("admin")` ; un test échoue si une action est ajoutée sans cela. La base refuse tout autre rôle (RLS, 16 tables). |
+| Traçabilité | Journal `action` en écriture seule imposé par un déclencheur ; chaque préparation, validation, modification de fiche et activation y est inscrite avec l'activité et l'auteur. |
+| Chat public | Désactivé par défaut ; garde dans l'action serveur elle-même. |
+
+**Vérifications** : `src/lib/agent/securite/` (15 manipulations jouées contre un modèle simulé qui
+obéit, 9 lectures croisées) et `src/server/agent/securite-roles.test.ts` ; `test/securite/*.sql`
+sur la base réelle ; `npm run eval:securite` pour le vrai modèle (non lancé à ce jour).
+
+**Failles trouvées et corrigées en écrivant ces tests (2026-09-19)** : un code suivi d'une
+ponctuation (« le digicode est 4521. ») n'était pas détecté ; les données bancaires n'étaient pas
+masquées ; les lignes de fiche ressemblant à un code atteignaient le modèle ; la neutralisation de la
+balise se contournait avec `< /message_recu >`.
+
+**Limites connues** : l'heuristique de détection de codes peut manquer un format inhabituel
+(elle vise les mots-clés d'accès, un nombre de 3 à 8 chiffres, et « mot de passe : valeur »), ou
+masquer à tort une ligne légitime ; les tests ne prouvent pas le comportement du vrai modèle ;
+aucune donnée personnelle n'a de durée de conservation appliquée (à valider avec un conseil).

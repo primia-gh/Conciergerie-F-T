@@ -190,6 +190,65 @@ Index : `(user_id, read_at)`.
 ### `audit_logs`
 | id | actor_id FK profiles | action text | entity_type text | entity_id uuid | metadata jsonb | created_at |
 
+## 2 bis. Agent IA (F&T et assistant du Gérant) — tables ajoutées
+
+Ajoutées **à côté** des tables de Conciergerie Premium ci-dessus, jamais à leur place. 16 tables,
+migrations `0015` à `0026`. Source de vérité : `src/server/db/schema.ts` (section « Agent IA »).
+Contexte et décisions : `docs/cahier-des-charges-v2.md`, `DECISIONS.md`.
+
+**Nommage.** Noms en français, comme dans le cahier des charges. Seule exception : `message` du
+cahier devient `message_agent`, car `messages` (Premium) existe déjà avec un autre sens.
+
+**Colonne `activite`** (enum `ft` / `premium` / `commun`) sur `regle`, `fiche_connaissance`,
+`message_agent`, `action` et `demande`. **Sans valeur par défaut** (migration `0024`) : tout
+écrivain doit la renseigner. `demande.activite` n'accepte pas `commun`. Ne pas la confondre avec
+`regle.domaine` (thème : communication, finance…).
+
+### Tables utilisées par le code
+
+| Table | Rôle | Points d'attention |
+|---|---|---|
+| `demande` | Boîte de réception du Gérant : message reçu, brouillon, réponse finale | `statut` : `nouveau`, `brouillon_pret`, `valide`, `corrige`, `escalade`. `traite_le` non nul = clôturée (une seule fois). `fiches_utilisees` (jsonb) garde les fiches lues, pour la traçabilité. `categorie_escalade` + `escalade_urgente` permettent de compter les transmissions par motif. `logement_id` facultatif, F&T seulement. Le message y est **déjà masqué** de toute donnée bancaire. |
+| `fiche_connaissance` | Ce que l'assistant a le droit de dire | `logement_id` nul = fiche générale de l'activité. **Versionnée, jamais modifiée en place** : une ligne par version. Unicité par section et version (deux index partiels, migration `0026`). Sections définies dans `src/lib/agent/fiches-modele.ts`. |
+| `action` | Le journal | **Écriture seule, imposée par un déclencheur** (aucun update, delete ni truncate, même avec la clé de service). Aucune policy d'écriture. Lecture réservée à l'admin. |
+| `regle` | Le cadre de décision et l'autonomie par tâche | Unique par `(activite, domaine, tache)`. `niveau_autonomie` : `propose`, `agit_apres_validation`, `agit_seul`. |
+| `logement` | Un logement F&T | `statut` : `inactif` (défaut) ou `actif`. Activation refusée tant que les sections accès, équipements, règles et dépannage ne sont pas remplies. FK vers `proprietaire` en `restrict`. |
+| `proprietaire` | Propriétaire, prospect ou client | Même table, seul `statut` change (`prospect`, `en_discussion`, `client`, `perdu`). |
+| `bien_prospect` | Bien d'un prospect (qualification) | Alimenté par le chat public de prospection (désactivé). |
+| `message_agent` | Messages du chat de prospection | Auteur : `voyageur`, `agent`, `gerant`, `proprietaire`. |
+| `rendez_vous` | Rendez-vous proposés par le chat de prospection | |
+
+### Tables créées mais pas encore utilisées
+
+`secret_logement` (codes d'accès chiffrés — le chiffrement n'est pas écrit), `reservation`,
+`voyageur`, `incident`, `menage`, `prestataire`, `lien_acces`. Elles attendent les lots L2 à L5 du
+cahier d'origine ; ne pas les supposer alimentées.
+
+### Sécurité par ligne
+
+Les 16 tables ont la RLS activée et **une seule policy**, réservée à l'admin
+(`current_app_role() = 'admin'`) ; `action` n'a qu'une policy en lecture. L'agent lit et écrit par la
+clé de service côté serveur, **après** `assertRole("admin")`. Vérification rejouable :
+`test/securite/rls-audit.sql`.
+
+### Migrations de l'agent
+
+| N° | Contenu |
+|---|---|
+| `0015` | Schéma des 15 premières tables (lot L0) |
+| `0016` | RLS de ces tables |
+| `0017` | Règles de départ (7 tâches, niveaux du cahier des charges) |
+| `0018`, `0019`, `0021` | Règles du chat de prospection ; fiche offre F&T (version 1) |
+| `0020` | Auteur `proprietaire` pour `message_agent` |
+| `0022` | Enums `activite` et `demande_status`, colonne `activite`, table `demande`, unicité des règles par activité |
+| `0023` | RLS de `demande` ; verrou du journal |
+| `0024` | Retire la valeur par défaut de `activite` |
+| `0025` | `categorie_escalade`, `escalade_urgente` |
+| `0026` | Unicité des versions de fiche |
+
+Appliquées sur la base de **dev** (`concierge-app-dev`) ; **pas** sur la production. Procédure et
+pièges : `docs/exploitation-agent.md`.
+
 ## 3. Row Level Security — principe (détail SQL en Phase 3)
 
 Toutes les tables listées ci-dessus ont `ROW LEVEL SECURITY` activé avec une politique `deny by default`. Exemple de politique pour `requests` :
