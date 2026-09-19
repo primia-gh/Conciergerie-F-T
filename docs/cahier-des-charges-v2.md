@@ -48,7 +48,10 @@ de l'activité concernée ; le Gérant relit, corrige, puis **envoie lui-même**
 Deux tâches du chat de prospection (`reponse_offre_prospect`, `relance_prospect_48h`) sont réglées
 sur « agit seul » dans la table `regle` (héritage du lot L1). Le chat est coupé ; la relance à 48 h
 (tâche planifiée `/api/cron/relances`) n'a pas été coupée : elle ne concerne que les prospects
-existants qui ont laissé un e-mail, et n'appelle pas le modèle.
+existants qui ont laissé un e-mail, et n'appelle pas le modèle. Elle tourne **une fois par jour**
+(l'offre Hobby de Vercel refuse une tâche plus fréquente : un déclenchement horaire a fait échouer
+le déploiement de la prévisualisation le 2026-09-19), donc la relance part entre 48 h et 72 h après
+le dernier message.
 
 ## Architecture
 

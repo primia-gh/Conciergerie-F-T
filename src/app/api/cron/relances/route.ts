@@ -11,10 +11,12 @@ const DELAI_RELANCE_MS = 48 * 60 * 60 * 1000;
 /**
  * Relance automatique des prospects propriétaires (lot L1) : une seule fois,
  * 48h après le dernier message sortant sans réponse, uniquement s'ils ont
- * laissé un e-mail. Déclenché par Vercel Cron (voir vercel.json) — la
- * fréquence horaire de la tâche donne une précision suffisante sur la
- * fenêtre de 48h sans sur-solliciter la base pour un volume de prospects
- * qui reste faible en phase 1.
+ * laissé un e-mail. Déclenché par Vercel Cron (voir vercel.json), UNE FOIS PAR
+ * JOUR à 8 h UTC : l'offre Hobby de Vercel refuse tout déploiement contenant
+ * une tâche plus fréquente (constaté le 2026-09-19 avec un déclenchement
+ * horaire). Conséquence : la relance part entre 48 h et 72 h après le dernier
+ * message sans réponse, ce qui reste sans effet pour une relance de courtoisie.
+ * Sur l'offre Pro, un déclenchement horaire redeviendrait possible.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;

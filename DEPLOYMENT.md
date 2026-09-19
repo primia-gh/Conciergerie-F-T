@@ -62,9 +62,13 @@ Vercel (Production + Preview séparément si les valeurs diffèrent) :
    `test/securite/rls-audit.sql` et `test/securite/journal-immuable.sql`. **Déployer le code avant
    les migrations ferait planter le site** sur les colonnes manquantes.
 3. Renseigner les variables ci-dessus dans Vercel.
-4. Fusionner la branche. À noter : `vercel.json` déclare une tâche planifiée **horaire**
+4. Fusionner la branche. À noter : `vercel.json` déclare une tâche planifiée
    (`/api/cron/relances`) qui démarre dès le déploiement, même chat coupé. Elle ne concerne que les
    prospects existants ayant laissé un e-mail et n'appelle pas le modèle.
+   **Elle est quotidienne (8 h UTC) parce que l'offre Hobby de Vercel refuse tout déploiement
+   contenant une tâche plus fréquente** (vérifié le 2026-09-19 : un déclenchement horaire,
+   `0 * * * *`, a fait échouer le déploiement de la prévisualisation). Sur l'offre Pro, remettre un
+   déclenchement horaire redeviendrait possible.
 5. Ne pas oublier : aucune vraie fiche n'existe encore, l'assistant escaladera tout tant qu'elles
    ne sont pas saisies (`/admin/fiches`).
 
