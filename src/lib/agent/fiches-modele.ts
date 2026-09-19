@@ -158,3 +158,17 @@ export function detecterCodesProbables(contenu: string): string[] {
     .filter((l) => l && (CODE_NUMERIQUE.test(l) || MOT_DE_PASSE.test(l)))
     .map((l) => (l.length > 80 ? `${l.slice(0, 79)}…` : l));
 }
+
+/**
+ * Ne garde que la dernière version de chaque section, à partir de lignes de
+ * UNE même portée (un logement, ou les fiches globales d'une activité).
+ * L'ordre d'arrivée n'a pas d'importance : la plus haute version gagne.
+ */
+export function dernieresVersions<T extends { section: string; version: number }>(lignes: T[]): T[] {
+  const meilleures = new Map<string, T>();
+  for (const ligne of lignes) {
+    const actuelle = meilleures.get(ligne.section);
+    if (!actuelle || ligne.version > actuelle.version) meilleures.set(ligne.section, ligne);
+  }
+  return [...meilleures.values()];
+}
