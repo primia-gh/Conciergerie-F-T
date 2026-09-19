@@ -99,6 +99,13 @@
       "when": 1789675548992,
       "tag": "0020_agent_ft_l1_message_author_proprietaire",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789815879167,
+      "tag": "0022_agent_v2_boite_reception",
+      "breakpoints": true
     }
   ]
 }

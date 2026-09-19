@@ -1,5 +1,7 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   doublePrecision,
   index,
@@ -13,6 +15,7 @@ import {
   text,
   time,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -430,6 +433,21 @@ export const messageAgentStatusEnum = pgEnum("message_agent_status", [
   "corrige",
 ]);
 
+// V2 (assistant du Gérant) : l'activité à laquelle une règle, une fiche, un
+// message ou une ligne de journal appartient. "commun" = valable pour les deux.
+// Distinct de `regle.domaine` (thème : communication, finance…). Les lignes
+// créées avant la V2 sont toutes des lignes F&T, d'où le défaut "ft".
+export const activiteEnum = pgEnum("activite", ["ft", "premium", "commun"]);
+
+// Cycle de vie d'une demande de la boîte de réception du Gérant.
+export const demandeStatusEnum = pgEnum("demande_status", [
+  "nouveau",
+  "brouillon_pret",
+  "valide",
+  "corrige",
+  "escalade",
+]);
+
 // Les 3 niveaux d'autonomie du cahier des charges (§ Comportement de l'agent).
 export const autonomyLevelEnum = pgEnum("autonomy_level", [
   "propose",
@@ -551,6 +569,7 @@ export const messageAgent = pgTable("message_agent", {
   langue: text("langue").notNull().default("fr"),
   auteur: messageAgentAuthorEnum("auteur").notNull(),
   statut: messageAgentStatusEnum("statut").notNull().default("propose"),
+  activite: activiteEnum("activite").notNull().default("ft"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -568,24 +587,32 @@ export const action = pgTable("action", {
   justification: text("justification"),
   resultat: text("resultat"),
   coutTraitement: numeric("cout_traitement", { precision: 10, scale: 4 }),
+  activite: activiteEnum("activite").notNull().default("ft"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // "Le cadre de décision, modifiable sans toucher au code" — une ligne par
 // tâche réglable (réponse factuelle, envoi infos d'arrivée, etc.).
-export const regle = pgTable("regle", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  domaine: text("domaine").notNull(),
-  tache: text("tache").notNull(),
-  condition: text("condition"),
-  actionAutorisee: text("action_autorisee"),
-  plafond: numeric("plafond", { precision: 10, scale: 2 }),
-  niveauAutonomie: autonomyLevelEnum("niveau_autonomie").notNull().default("propose"),
-  version: integer("version").notNull().default(1),
-  actif: boolean("actif").notNull().default(true),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const regle = pgTable(
+  "regle",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    activite: activiteEnum("activite").notNull().default("ft"),
+    domaine: text("domaine").notNull(),
+    tache: text("tache").notNull(),
+    condition: text("condition"),
+    actionAutorisee: text("action_autorisee"),
+    plafond: numeric("plafond", { precision: 10, scale: 2 }),
+    niveauAutonomie: autonomyLevelEnum("niveau_autonomie").notNull().default("propose"),
+    version: integer("version").notNull().default(1),
+    actif: boolean("actif").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // Une tâche est unique par activité : F&T et Premium peuvent avoir chacune
+  // leur "reponse_factuelle" sans que l'une masque l'autre.
+  (table) => [uniqueIndex("regle_activite_domaine_tache_idx").on(table.activite, table.domaine, table.tache)],
+);
 
 export const incident = pgTable("incident", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -646,6 +673,7 @@ export const ficheConnaissance = pgTable("fiche_connaissance", {
   contenu: text("contenu").notNull(),
   version: integer("version").notNull().default(1),
   auteur: text("auteur"),
+  activite: activiteEnum("activite").notNull().default("ft"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -679,3 +707,34 @@ export const lienAcces = pgTable("lien_acces", {
   usedAt: timestamp("used_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// V2 — boîte de réception du Gérant : un message reçu (collé à la main pour
+// l'instant), le brouillon préparé par l'agent, et ce que le Gérant en a fait.
+// L'agent n'envoie rien : `reponse_finale` est le texte que le Gérant copie.
+export const demande = pgTable(
+  "demande",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Choisie par le Gérant, jamais devinée par l'agent. "commun" interdit ici.
+    activite: activiteEnum("activite").notNull(),
+    canalOrigine: text("canal_origine").notNull().default("colle_par_gerant"),
+    expediteur: text("expediteur"),
+    logementId: uuid("logement_id").references(() => logement.id, { onDelete: "set null" }),
+    contenuRecu: text("contenu_recu").notNull(),
+    langue: text("langue"),
+    statut: demandeStatusEnum("statut").notNull().default("nouveau"),
+    brouillon: text("brouillon"),
+    reponseFinale: text("reponse_finale"),
+    motifEscalade: text("motif_escalade"),
+    // Fiches lues pour préparer le brouillon : [{ id, section, version }].
+    fichesUtilisees: jsonb("fiches_utilisees").notNull().default([]),
+    coutTraitement: numeric("cout_traitement", { precision: 10, scale: 4 }),
+    traiteLe: timestamp("traite_le", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check("demande_activite_metier", sql`${table.activite} <> 'commun'`),
+    index("demande_statut_created_idx").on(table.statut, table.createdAt),
+  ],
+);
