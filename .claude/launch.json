@@ -10,6 +10,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "concierge-dev-certificats",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--use-system-ca", "node_modules/next/dist/bin/next", "dev"],
+      "port": 3000
     }
   ]
 }

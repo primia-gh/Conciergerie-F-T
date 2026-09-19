@@ -80,10 +80,19 @@ Mis à jour le 2026-09-19. Branche `v2-assistant-gerant`, **non fusionnée dans 
   (`/admin/boite`), fiches et logements (`/admin/fiches`), assistant du Gérant, garde-fous, journal
   verrouillé, tests de sécurité. Le chat public de prospection est construit mais **désactivé**.
 - **Rien ne part automatiquement** : toutes les tâches de l'assistant sont au niveau « Propose ».
+- **Essayé le 2026-09-19, connecté en admin sur la base de dev** (vérifié dans la base et le
+  journal) : versions et restauration d'une fiche, création d'un logement, activation après les
+  quatre sections, avertissement de code, boîte de réception en mode démonstration, masquage d'un
+  numéro de carte, traitement d'une escalade, « ajouter à la fiche ».
 - **Jamais fait, à ne pas croire fait** : aucune clé Anthropic dans `.env.local` (donc jamais
-  essayé avec le vrai modèle) ; écrans non essayés connecté ; aucune vraie fiche saisie.
+  essayé avec le vrai modèle : qualité des brouillons, langues, escalades, manipulations) ;
+  aucune vraie fiche saisie (seulement des données de test).
 - **Bloquant avant tout déploiement** : les migrations `0015` à `0026` n'existent que sur la base de
-  dev. `concierge-app-prod` est en pause et on ignore quelle base alimente le site en ligne.
+  dev. Vérifié le 2026-09-19 : `concierge-app-prod` est en pause et **ne répond pas** ; la base de
+  dev ne contient que les 4 comptes de test et 3 demandes de test du 2026-09-07 (aucun vrai client).
+  Impossible de savoir laquelle des deux le site en ligne utilise : la lecture des variables Vercel
+  est refusée (droits). Le Gérant doit lire `NEXT_PUBLIC_SUPABASE_URL` dans Vercel (Settings →
+  Environment Variables) : le nom du projet est dans l'adresse.
 - **Décisions ouvertes** : voir `docs/cahier-des-charges-v2.md` (questions ouvertes). Le logiciel
   de réservation reste non choisi et n'est pas nécessaire aujourd'hui.
 
