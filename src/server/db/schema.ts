@@ -436,7 +436,8 @@ export const messageAgentStatusEnum = pgEnum("message_agent_status", [
 // V2 (assistant du Gérant) : l'activité à laquelle une règle, une fiche, un
 // message ou une ligne de journal appartient. "commun" = valable pour les deux.
 // Distinct de `regle.domaine` (thème : communication, finance…). Les lignes
-// créées avant la V2 sont toutes des lignes F&T, d'où le défaut "ft".
+// créées avant la V2 sont toutes des lignes F&T (migration 0022 les a
+// étiquetées "ft"). Aucun défaut : chaque écrivain doit indiquer l'activité.
 export const activiteEnum = pgEnum("activite", ["ft", "premium", "commun"]);
 
 // Cycle de vie d'une demande de la boîte de réception du Gérant.
@@ -569,7 +570,7 @@ export const messageAgent = pgTable("message_agent", {
   langue: text("langue").notNull().default("fr"),
   auteur: messageAgentAuthorEnum("auteur").notNull(),
   statut: messageAgentStatusEnum("statut").notNull().default("propose"),
-  activite: activiteEnum("activite").notNull().default("ft"),
+  activite: activiteEnum("activite").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -587,7 +588,7 @@ export const action = pgTable("action", {
   justification: text("justification"),
   resultat: text("resultat"),
   coutTraitement: numeric("cout_traitement", { precision: 10, scale: 4 }),
-  activite: activiteEnum("activite").notNull().default("ft"),
+  activite: activiteEnum("activite").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -597,7 +598,7 @@ export const regle = pgTable(
   "regle",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    activite: activiteEnum("activite").notNull().default("ft"),
+    activite: activiteEnum("activite").notNull(),
     domaine: text("domaine").notNull(),
     tache: text("tache").notNull(),
     condition: text("condition"),
@@ -673,7 +674,7 @@ export const ficheConnaissance = pgTable("fiche_connaissance", {
   contenu: text("contenu").notNull(),
   version: integer("version").notNull().default(1),
   auteur: text("auteur"),
-  activite: activiteEnum("activite").notNull().default("ft"),
+  activite: activiteEnum("activite").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -726,6 +727,11 @@ export const demande = pgTable(
     brouillon: text("brouillon"),
     reponseFinale: text("reponse_finale"),
     motifEscalade: text("motif_escalade"),
+    // Catégorie du motif (voir CATEGORIES_ESCALADE) : permet de compter les
+    // transmissions par motif (indicateurs de fiabilité). Null quand l'escalade
+    // ne vient pas d'un choix du modèle (mode démonstration, erreur technique).
+    categorieEscalade: text("categorie_escalade"),
+    escaladeUrgente: boolean("escalade_urgente").notNull().default(false),
     // Fiches lues pour préparer le brouillon : [{ id, section, version }].
     fichesUtilisees: jsonb("fiches_utilisees").notNull().default([]),
     coutTraitement: numeric("cout_traitement", { precision: 10, scale: 4 }),
