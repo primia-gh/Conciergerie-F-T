@@ -22,6 +22,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # `PageProps` et `LayoutProps` sont des types GLOBAUX générés par Next.js
+      # (dossier .next/types, non versionné). Sans cette étape, une copie neuve du
+      # dépôt échoue au contrôle de types avec « Cannot find name 'PageProps' ».
+      - name: Generate Next.js route types
+        run: npx next typegen
+
       - name: Type check
         run: npx tsc --noEmit
 
