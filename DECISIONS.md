@@ -178,6 +178,19 @@ que les logements au statut `actif`, et applique `masquerCodes` à chaque sectio
 contrôle applicatif documenté ici — pas de troisième sans une raison et un contrôle tout aussi
 explicites.
 
+## Troisième exception : le portail propriétaire
+
+**Contexte** : même besoin que le guide voyageur — une page publique (`/proprietaire/[id]`), sans
+session, pour qu'un propriétaire consulte ses logements par un lien privé.
+
+**Décision** : `createServiceClient()` de nouveau, avec son propre contrôle : la requête ne
+sélectionne jamais `proprietaire.notes` (usage interne), ne montre aucune donnée de réservation
+(la table `reservation` est vide, aucun PMS ni iCal connecté à ce jour — mieux vaut ne rien afficher
+qu'inventer), et se limite au propriétaire demandé par son identifiant.
+
+**Conséquence** : trois usages documentés de la clé de service (agent, guide voyageur, portail
+propriétaire), chacun listé ici avec son contrôle. Le prochain suivra la même règle.
+
 ## Assistant d'abord, agent autonome plus tard
 
 **Décision** : l'assistant prépare un brouillon, le Gérant l'envoie lui-même ; toutes les tâches

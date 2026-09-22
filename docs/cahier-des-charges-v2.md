@@ -87,6 +87,7 @@ Détail des tables : `DATABASE.md` §2 bis. Décisions et leurs raisons : `DECIS
 | 7 | Tests de sécurité : 15 manipulations, 9 lectures croisées, rôles, audits SQL ; trois failles corrigées |
 | 8 | Cette documentation |
 | 9 | Guide numérique par logement (`/guide/[id]`), lien copiable depuis la fiche du logement |
+| 10 | Portail propriétaire simple (`/proprietaire/[id]`) : logements, statut, sans dates ni réservations |
 
 ## Critères d'acceptation de la version 2
 

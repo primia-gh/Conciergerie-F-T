@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { SECTIONS_LOGEMENT, completudeLogement, dernieresVersions } from "@/lib/agent/fiches-modele";
 import { ActivationBoutons } from "../../../_components/activation-boutons";
-import { CopierLienGuide } from "../../../_components/copier-lien-guide";
+import { CopierLien } from "../../../_components/copier-lien";
 
 type LogementRow = {
   id: string;
@@ -14,7 +14,7 @@ type LogementRow = {
   adresse: string;
   capacite: number | null;
   statut: string;
-  proprietaire: { nom: string } | { nom: string }[] | null;
+  proprietaire: { id: string; nom: string } | { id: string; nom: string }[] | null;
 };
 
 type FicheRow = { section: string; contenu: string; version: number; created_at: string };
@@ -27,7 +27,7 @@ export default async function AdminLogementPage({ params }: PageProps<"/admin/fi
   const [{ data: logement }, { data: fiches }] = await Promise.all([
     supabase
       .from("logement")
-      .select("id, nom, adresse, capacite, statut, proprietaire:proprietaire_id(nom)")
+      .select("id, nom, adresse, capacite, statut, proprietaire:proprietaire_id(id, nom)")
       .eq("id", id)
       .maybeSingle<LogementRow>(),
     supabase
@@ -84,7 +84,7 @@ export default async function AdminLogementPage({ params }: PageProps<"/admin/fi
                 dépannage, alentours), sans les codes d&apos;accès — à envoyer au voyageur.
               </p>
               <div>
-                <CopierLienGuide logementId={logement.id} />
+                <CopierLien chemin={`/guide/${logement.id}`} label="Copier le lien du guide voyageur" />
               </div>
             </>
           ) : (
@@ -94,6 +94,23 @@ export default async function AdminLogementPage({ params }: PageProps<"/admin/fi
           )}
         </CardContent>
       </Card>
+
+      {proprietaire && (
+        <Card className="mt-4">
+          <CardContent className="flex flex-col gap-2 pt-5">
+            <p className="text-sm text-fg-muted">
+              Une page pour {proprietaire.nom} : ses logements, leur statut — sans vos notes
+              internes ni de données de réservation (pas encore disponibles).
+            </p>
+            <div>
+              <CopierLien
+                chemin={`/proprietaire/${proprietaire.id}`}
+                label="Copier le lien du portail propriétaire"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <h2 className="mt-10 font-display text-lg font-medium text-fg">Sections de la fiche</h2>
       <ul className="mt-4 flex flex-col gap-3">

@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export function CopierLienGuide({ logementId }: { logementId: string }) {
+export function CopierLien({ chemin, label }: { chemin: string; label: string }) {
   const [copie, setCopie] = useState(false);
 
   async function copier() {
-    const url = `${window.location.origin}/guide/${logementId}`;
+    const url = `${window.location.origin}${chemin}`;
     await navigator.clipboard.writeText(url);
     setCopie(true);
     setTimeout(() => setCopie(false), 2000);
@@ -15,7 +15,7 @@ export function CopierLienGuide({ logementId }: { logementId: string }) {
 
   return (
     <Button type="button" variant="secondary" size="sm" onClick={copier}>
-      {copie ? "Lien copié !" : "Copier le lien du guide voyageur"}
+      {copie ? "Lien copié !" : label}
     </Button>
   );
 }
