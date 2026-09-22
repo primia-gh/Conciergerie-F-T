@@ -38,6 +38,7 @@ de l'activité concernée ; le Gérant relit, corrige, puis **envoie lui-même**
 | Données bancaires | « Ne transitent pas par l'agent » | Numéros de carte et IBAN masqués **avant** l'enregistrement et avant le modèle |
 | Journal | « Jamais modifiable » | Imposé **en base** par un déclencheur (aucun update, delete ni truncate) |
 | Hypothèse « le site ne reçoit pas de visiteurs » | Prise faute d'information | Fausse : le site est en ligne (voir CLAUDE.md) |
+| Délai WhatsApp Business | « Plusieurs semaines » | Plutôt **3 à 10 jours ouvrés** en passant par un prestataire intermédiaire (BSP) — vérifié le 2026-09-22 ; reste une étape à faire, pas un blocage de plusieurs mois |
 
 ## Niveaux d'autonomie (inchangés)
 
@@ -112,18 +113,30 @@ Comme dans le cahier d'origine, une phase n'est **acceptée** que sur des **cas 
 - [ ] **Personne qui répond la nuit** quand une urgence est escaladée : inchangé.
 - [ ] **Statut juridique, RGPD** : les durées de conservation restent des propositions à valider avec un conseil.
 
+## Audit concurrentiel (2026-09-22)
+
+Comparaison avec les outils du marché (Hospitable, Enso Connect, HostBuddy, Turno, Breezeway,
+Duve…) pour un parc de 6 à 15 logements. Deux constats ne changent rien : l'envoi automatique
+(eux le font, vous avez choisi de garder la main tant que rien n'est mesuré) et le portail
+propriétaire avec revenus (nécessite un PMS, hors de portée aujourd'hui). Deux manques identifiés,
+faciles à construire avec l'existant : un guide numérique par logement, et une réponse aux avis
+reçus. Détail intégré ci-dessous dans « Suite possible ».
+
 ## Suite possible (non décidée)
 
 À arbitrer avec le Gérant selon ses réponses ci-dessus, par ordre de valeur probable :
 
-1. Faire tourner l'assistant sur ses vrais messages (clé Anthropic + fiches réelles) et mesurer la part de brouillons validés sans correction.
-2. Recevoir les messages sans copier-coller (e-mail entrant, puis WhatsApp).
-3. Proposition automatique d'ajout à la fiche (deuxième appel au modèle, aujourd'hui manuelle).
-4. Autonomie sur les réponses factuelles, une fois les seuils atteints.
-5. Rattacher les réservations (PMS), les ménages, les relevés propriétaires — lots L2 à L5 du cahier d'origine.
+1. Faire tourner l'assistant sur ses vrais messages (clé Anthropic + fiches réelles) et mesurer la part de brouillons validés sans correction. Conditionne tout le reste.
+2. **Guide numérique par logement** *(nouveau, audit concurrentiel)* : une page de lecture simple, à envoyer en lien au voyageur, générée à partir des sections déjà saisies (accès, équipements, alentours) — jamais les lignes masquées comme des codes. Réduit les questions avant qu'elles soient posées. Coût faible : les données existent déjà, c'est un nouvel écran de lecture, pas un nouvel outil pour l'agent.
+3. **Brouillon de réponse à un avis reçu** *(nouveau, audit concurrentiel)* : une mission de plus, même noyau et mêmes garde-fous qu'aujourd'hui. L'assistant détecte déjà la *menace* d'un mauvais avis (catégorie d'escalade `mauvais_avis`) ; ceci couvrirait l'avis une fois publié.
+4. Recevoir les messages sans copier-coller (e-mail entrant, puis WhatsApp — délai révisé, voir tableau plus haut).
+5. Proposition automatique d'ajout à la fiche (deuxième appel au modèle, aujourd'hui manuelle).
+6. Autonomie sur les réponses factuelles, une fois les seuils atteints.
+7. Rattacher les réservations (PMS), les relevés propriétaires, et les ménages — lots L2 à L5 du cahier d'origine. Les concurrents ajoutent une checklist photo par ménage ; **cela rouvrirait la décision « photos hors périmètre » ci-dessous**, à trancher le moment venu.
 
 ## Ce qui reste hors périmètre
 
 Tarification dynamique, encaissement, toute décision engageant de l'argent, du droit ou la sécurité
-des personnes, chiffrement des codes d'accès (table `secret_logement` non utilisée), photos,
+des personnes, chiffrement des codes d'accès (table `secret_logement` non utilisée), photos
+*(possibilité rouverte par l'étape 7 de « Suite possible » ci-dessus, non tranchée)*,
 traduction des fiches.
