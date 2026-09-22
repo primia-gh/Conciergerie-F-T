@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { SECTIONS_LOGEMENT, completudeLogement, dernieresVersions } from "@/lib/agent/fiches-modele";
 import { ActivationBoutons } from "../../../_components/activation-boutons";
+import { CopierLienGuide } from "../../../_components/copier-lien-guide";
 
 type LogementRow = {
   id: string;
@@ -71,6 +72,26 @@ export default async function AdminLogementPage({ params }: PageProps<"/admin/fi
             </p>
           )}
           {(actif || completude.complete) && <ActivationBoutons logementId={logement.id} actif={actif} />}
+        </CardContent>
+      </Card>
+
+      <Card className="mt-4">
+        <CardContent className="flex flex-col gap-2 pt-5">
+          {actif ? (
+            <>
+              <p className="text-sm text-fg-muted">
+                Une page simple avec les informations de ce logement (accès, équipements, règles,
+                dépannage, alentours), sans les codes d&apos;accès — à envoyer au voyageur.
+              </p>
+              <div>
+                <CopierLienGuide logementId={logement.id} />
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-fg-muted">
+              Le lien du guide voyageur sera disponible une fois ce logement activé.
+            </p>
+          )}
         </CardContent>
       </Card>
 

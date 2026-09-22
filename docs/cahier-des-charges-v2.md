@@ -86,6 +86,7 @@ Détail des tables : `DATABASE.md` §2 bis. Décisions et leurs raisons : `DECIS
 | 6 | Fiches `/admin/fiches` : sections, versions, restauration, logements, activation, choix du logement dans la boîte, « ajouter cette information à la fiche » |
 | 7 | Tests de sécurité : 15 manipulations, 9 lectures croisées, rôles, audits SQL ; trois failles corrigées |
 | 8 | Cette documentation |
+| 9 | Guide numérique par logement (`/guide/[id]`), lien copiable depuis la fiche du logement |
 
 ## Critères d'acceptation de la version 2
 
@@ -127,7 +128,7 @@ reçus. Détail intégré ci-dessous dans « Suite possible ».
 À arbitrer avec le Gérant selon ses réponses ci-dessus, par ordre de valeur probable :
 
 1. Faire tourner l'assistant sur ses vrais messages (clé Anthropic + fiches réelles) et mesurer la part de brouillons validés sans correction. Conditionne tout le reste.
-2. **Guide numérique par logement** *(nouveau, audit concurrentiel)* : une page de lecture simple, à envoyer en lien au voyageur, générée à partir des sections déjà saisies (accès, équipements, alentours) — jamais les lignes masquées comme des codes. Réduit les questions avant qu'elles soient posées. Coût faible : les données existent déjà, c'est un nouvel écran de lecture, pas un nouvel outil pour l'agent.
+2. ~~**Guide numérique par logement**~~ *(fait le 2026-09-22, étape 9)* : page `/guide/[id]`, lien copiable depuis `/admin/fiches/ft/logements/[id]`, sections non vides du logement, codes masqués (vérifié en local avec une vraie ligne de code), accessible seulement si le logement est actif.
 3. **Brouillon de réponse à un avis reçu** *(nouveau, audit concurrentiel)* : une mission de plus, même noyau et mêmes garde-fous qu'aujourd'hui. L'assistant détecte déjà la *menace* d'un mauvais avis (catégorie d'escalade `mauvais_avis`) ; ceci couvrirait l'avis une fois publié.
 4. Recevoir les messages sans copier-coller (e-mail entrant, puis WhatsApp — délai révisé, voir tableau plus haut).
 5. Proposition automatique d'ajout à la fiche (deuxième appel au modèle, aujourd'hui manuelle).

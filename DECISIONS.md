@@ -163,6 +163,21 @@ si une action serveur est ajoutée sans exiger le rôle admin (`securite-roles.t
 est verrouillé en base, et l'audit `test/securite/rls-audit.sql` reste rejouable. La décision
 d'origine vaut toujours pour Conciergerie Premium.
 
+## Deuxième exception à « aucun usage de la clé service role » : le guide voyageur
+
+**Contexte** : le guide numérique par logement (`/guide/[id]`) est une page publique, pensée pour
+être envoyée par lien à un voyageur — donc sans session utilisateur du tout, ni admin ni autre. La
+RLS (réservée à l'admin) bloquerait toute lecture.
+
+**Décision** : `createServiceClient()` y est utilisée aussi, mais avec un contrôle différent de
+celui de l'agent (`assertRole("admin")` est impossible ici, faute de session) : la requête ne lit
+jamais `secret_logement`, se limite au logement demandé (identifiant UUID, non devinable), n'affiche
+que les logements au statut `actif`, et applique `masquerCodes` à chaque section avant affichage.
+
+**Conséquence** : deux usages distincts de la clé de service coexistent, chacun avec son propre
+contrôle applicatif documenté ici — pas de troisième sans une raison et un contrôle tout aussi
+explicites.
+
 ## Assistant d'abord, agent autonome plus tard
 
 **Décision** : l'assistant prépare un brouillon, le Gérant l'envoie lui-même ; toutes les tâches
