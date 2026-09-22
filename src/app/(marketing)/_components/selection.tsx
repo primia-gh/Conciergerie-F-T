@@ -31,7 +31,7 @@ export function Selection() {
           {ITEMS.map((item, index) => (
             <div key={item.title}>
               <div
-                className="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-gradient-to-br from-bg-subtle to-border/50"
+                className="relative aspect-[4/3] w-full overflow-hidden rounded-sm border border-border bg-gradient-to-br from-bg-subtle to-border/50 shadow-soft"
                 style={index % 3 === 1 ? { backgroundImage: "linear-gradient(135deg, color-mix(in oklab, var(--color-accent) 18%, transparent), var(--color-bg))" } : undefined}
               >
                 <ImageIcon className="absolute bottom-3.5 right-3.5 h-5 w-5 text-fg-faint" />
