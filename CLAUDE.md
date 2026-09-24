@@ -83,6 +83,14 @@ Mis à jour le 2026-09-24. Branche `v2-assistant-gerant` **fusionnée dans `mast
   `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET` ; aucune en Preview. La tâche quotidienne
   `/api/cron/relances` (8 h UTC) a été lancée à la main : elle passe avec la clé `service_role`,
   et c'est elle qui évite la remise en pause de la base.
+- **Compte admin de production** créé le 2026-09-24 par le Gérant (Supabase → Add user, puis rôle
+  passé à `admin` en SQL, comme `seed-dev-accounts.sql`). Connexion et écrans `/admin/boite`,
+  `/admin/fiches` vérifiés en ligne. Le compte admin utilisé avant n'existait que sur la base de dev.
+- **Manques constatés en ligne** : pas de page « mot de passe oublié », et le site ne traite pas les
+  liens reçus par e-mail (lien magique, réinitialisation) : Supabase les accepte mais personne n'est
+  connecté. À construire, surtout pour les clients Premium. Supprimer depuis Supabase un compte qui
+  a des demandes échoue (`request_status_history.changed_by` obligatoire) : aucune perte, mais la
+  suppression passe par le parcours du site.
 - **Attention, relance automatique** : la règle `relance_prospect_48h` est au niveau « Agit seul »
   en production. Rien ne part aujourd'hui (aucun prospect, chat coupé, pas de `RESEND_API_KEY`),
   mais activer le chat et Resend fera partir de vraies relances.
