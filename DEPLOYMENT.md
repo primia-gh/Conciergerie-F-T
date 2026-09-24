@@ -50,7 +50,7 @@ Vercel (Production + Preview séparément si les valeurs diffèrent) :
 | `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS` | Compte Resend, domaine d'envoi vérifié |
 | `ANTHROPIC_API_KEY` | Agent IA : clé du modèle, côté serveur uniquement. Sans elle, mode démonstration (aucun brouillon simulé) |
 | `GERANT_ALERT_EMAIL` | Agent IA : adresse qui reçoit les alertes du chat de prospection (facultative) |
-| `CRON_SECRET` | Agent IA : protège `/api/cron/relances` (générée par Vercel pour les tâches planifiées) |
+| `CRON_SECRET` | Agent IA : protège `/api/cron/relances`. À créer soi-même (longue valeur aléatoire) : Vercel ne la génère pas, il se contente de l'envoyer à chaque déclenchement |
 | `CHAT_PROSPECTION_ACTIF` | Agent IA : laisser **vide** (chat public désactivé) tant que la limite de débit n'est pas partagée — voir SECURITY.md §6 |
 
 ### Déployer l'Agent IA (branche `v2-assistant-gerant`)
