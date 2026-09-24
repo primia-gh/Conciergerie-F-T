@@ -74,9 +74,22 @@ déployé et utilisé. Décision du 2026-09-17 : **les deux coexistent sur le m�
 
 ## Où on en est
 
-Mis à jour le 2026-09-19. Branche `v2-assistant-gerant`, **non fusionnée dans `master`**.
+Mis à jour le 2026-09-24. Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
+(étapes 1 et 2 de `docs/instructions-claude-code-2026-09.md`).
 
-- **Construit et testé** (333 tests + audits SQL sur la base de dev) : boîte de réception
+- **En production** (vérifié le 2026-09-24) : le site en ligne utilise `concierge-app-prod`
+  (migrations 0000 à 0026, audits rejoués). Variables Vercel (Production seulement) :
+  `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET` ; aucune en Preview. La tâche quotidienne
+  `/api/cron/relances` (8 h UTC) a été lancée à la main : elle passe avec la clé `service_role`,
+  et c'est elle qui évite la remise en pause de la base.
+- **Attention, relance automatique** : la règle `relance_prospect_48h` est au niveau « Agit seul »
+  en production. Rien ne part aujourd'hui (aucun prospect, chat coupé, pas de `RESEND_API_KEY`),
+  mais activer le chat et Resend fera partir de vraies relances.
+- **Base de dev en pause** (limite de deux projets gratuits) : `.env.local` pointe encore vers elle,
+  donc le serveur local ne peut pas lire de données. Solution à choisir avec le Gérant (voir
+  `docs/instructions-claude-code-2026-09.md`). Ne jamais pointer le local vers la production.
+- **Construit et testé** (337 tests + audits SQL sur la base de dev) : boîte de réception
   (`/admin/boite`), fiches et logements (`/admin/fiches`), assistant du Gérant, garde-fous, journal
   verrouillé, tests de sécurité. Le chat public de prospection est construit mais **désactivé**.
 - **Rien ne part automatiquement** : toutes les tâches de l'assistant sont au niveau « Propose ».
@@ -84,15 +97,13 @@ Mis à jour le 2026-09-19. Branche `v2-assistant-gerant`, **non fusionnée dans 
   journal) : versions et restauration d'une fiche, création d'un logement, activation après les
   quatre sections, avertissement de code, boîte de réception en mode démonstration, masquage d'un
   numéro de carte, traitement d'une escalade, « ajouter à la fiche ».
-- **Jamais fait, à ne pas croire fait** : aucune clé Anthropic dans `.env.local` (donc jamais
-  essayé avec le vrai modèle : qualité des brouillons, langues, escalades, manipulations) ;
-  aucune vraie fiche saisie (seulement des données de test).
-- **Bloquant avant tout déploiement** : les migrations `0015` à `0026` n'existent que sur la base de
-  dev. Vérifié le 2026-09-19 : `concierge-app-prod` est en pause et **ne répond pas** ; la base de
-  dev ne contient que les 4 comptes de test et 3 demandes de test du 2026-09-07 (aucun vrai client).
-  Impossible de savoir laquelle des deux le site en ligne utilise : la lecture des variables Vercel
-  est refusée (droits). Le Gérant doit lire `NEXT_PUBLIC_SUPABASE_URL` dans Vercel (Settings →
-  Environment Variables) : le nom du projet est dans l'adresse.
+- **Jamais fait, à ne pas croire fait** : jamais essayé avec le vrai modèle (qualité des
+  brouillons, langues, escalades, manipulations). Aucune clé Anthropic dans Vercel ; une valeur
+  est présente dans `.env.local` depuis le 2026-09-22, jamais vérifiée. Aucune vraie fiche saisie
+  (seulement des données de test, sur la base de dev).
+- **Accès de l'assistant** : l'outil Vercel connecté ne peut pas lire les réglages du projet
+  (403) ; on peut en revanche vérifier la base utilisée par le site en ligne sans aucun secret,
+  dans l'en-tête public `Content-Security-Policy` (`curl -I`).
 - **Décisions ouvertes** : voir `docs/cahier-des-charges-v2.md` (questions ouvertes). Le logiciel
   de réservation reste non choisi et n'est pas nécessaire aujourd'hui.
 

@@ -16,9 +16,12 @@ const PUBLIC_PATHS = [
 
 // Next.js suffixe les fichiers de convention (opengraph-image, icon...) d'un
 // hash en production : on autorise le préfixe plutôt qu'une correspondance exacte.
-const PUBLIC_PATH_PREFIXES = ["/opengraph-image", "/icon", "/apple-icon"];
+// `/guide/` et `/proprietaire/` : liens envoyés au voyageur et au propriétaire,
+// ouverts sans compte (identifiant UUID non devinable, contrôle dans la page).
+// La barre finale évite d'ouvrir par erreur `/guides…` ou `/proprietaire-…`.
+const PUBLIC_PATH_PREFIXES = ["/opengraph-image", "/icon", "/apple-icon", "/guide/", "/proprietaire/"];
 
-function isPublicPath(pathname: string) {
+export function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.includes(pathname) || PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p));
 }
 

@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: PageProps<"/proprietaire/[id]
   const { id } = await params;
   const trouve = await lireProprietaire(id);
   const titre = trouve ? `Espace propriétaire — ${trouve.proprietaire.nom}` : "Espace indisponible";
-  return { title: { absolute: titre } };
+  return { title: { absolute: titre }, robots: { index: false, follow: false } };
 }
 
 export default async function PortailProprietairePage({ params }: PageProps<"/proprietaire/[id]">) {

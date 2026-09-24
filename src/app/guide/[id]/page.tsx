@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: PageProps<"/guide/[id]">): Pr
   const { id } = await params;
   const trouve = await lireLogementActif(id);
   const titre = trouve ? `${trouve.logement.nom} — Conciergerie F&T` : "Guide indisponible";
-  return { title: { absolute: titre } };
+  return { title: { absolute: titre }, robots: { index: false, follow: false } };
 }
 
 export default async function GuideLogementPage({ params }: PageProps<"/guide/[id]">) {
