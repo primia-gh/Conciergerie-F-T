@@ -3,102 +3,100 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const NAV_LINKS = [
   { href: "#comment-ca-marche", label: "Comment ça marche" },
   { href: "#services", label: "Services" },
   { href: "#selection", label: "Sélection" },
-  { href: "#tarifs", label: "Tarifs" },
+  { href: "#tarifs", label: "Formules" },
   { href: "#faq", label: "FAQ" },
 ];
+
+const lienNav =
+  "whitespace-nowrap text-xs font-medium tracking-[0.18em] text-fg uppercase transition-colors hover:text-accent-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent";
+const boutonOr =
+  "inline-flex min-h-11 items-center justify-center whitespace-nowrap bg-accent px-6 text-sm font-medium tracking-wide text-accent-fg transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-fg";
 
 export function MarketingHeader({ dashboardHref }: { dashboardHref?: string | null }) {
   const [menuOuvert, setMenuOuvert] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+    <header className="sticky top-0 z-40 border-b border-filet bg-bg/85 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
         <Link
           href="/premium"
-          className="shrink-0 font-display text-xl font-medium text-fg"
+          className="shrink-0 font-display text-2xl tracking-wide text-fg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
           onClick={() => setMenuOuvert(false)}
         >
-          Conciergerie Premium
+          Conciergerie <em className="text-accent-hover">Premium</em>
         </Link>
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav aria-label="Sections de la page" className="hidden items-center gap-7 xl:flex">
           {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-sm text-fg-muted transition-colors hover:text-fg"
-            >
+            <a key={link.href} href={link.href} className={lienNav}>
               {link.label}
             </a>
           ))}
         </nav>
-        <div className="hidden items-center gap-3 md:flex">
-          {dashboardHref ? (
-            <Button asChild size="sm">
-              <Link href={dashboardHref}>Mon espace</Link>
-            </Button>
-          ) : (
-            <>
-              <Link href="/login" className="text-sm font-medium text-fg-muted hover:text-fg">
-                Se connecter
+        <div className="flex items-center gap-4">
+          <div className="hidden items-center gap-6 lg:flex">
+            {dashboardHref ? (
+              <Link href={dashboardHref} className={boutonOr}>
+                Mon espace
               </Link>
-              <Button asChild size="sm">
-                <Link href="/signup">Faire une demande</Link>
-              </Button>
-            </>
-          )}
+            ) : (
+              <>
+                <Link href="/login" className="whitespace-nowrap text-sm text-fg-muted transition-colors hover:text-fg">
+                  Se connecter
+                </Link>
+                <Link href="/signup" className={boutonOr}>
+                  Faire une demande
+                </Link>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setMenuOuvert((ouvert) => !ouvert)}
+            aria-expanded={menuOuvert}
+            aria-controls="menu-mobile"
+            aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}
+            className="flex h-11 w-11 shrink-0 items-center justify-center text-fg focus-visible:outline-2 focus-visible:outline-accent xl:hidden"
+          >
+            {menuOuvert ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setMenuOuvert((ouvert) => !ouvert)}
-          aria-expanded={menuOuvert}
-          aria-controls="menu-mobile"
-          aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm text-fg md:hidden"
-        >
-          {menuOuvert ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
       </div>
       {menuOuvert && (
-        <div id="menu-mobile" className="border-t border-border px-6 py-5 md:hidden">
-          <nav className="flex flex-col gap-4">
+        <div id="menu-mobile" className="border-t border-filet px-6 py-6 xl:hidden">
+          <nav aria-label="Sections de la page" className="flex flex-col gap-1">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setMenuOuvert(false)}
-                className="text-sm text-fg-muted transition-colors hover:text-fg"
+                className={`${lienNav} flex min-h-11 items-center`}
               >
                 {link.label}
               </a>
             ))}
           </nav>
-          <div className="mt-5 flex flex-col gap-3 border-t border-border pt-5">
+          <div className="mt-5 flex flex-col gap-3 border-t border-filet pt-5">
             {dashboardHref ? (
-              <Button asChild size="sm">
-                <Link href={dashboardHref} onClick={() => setMenuOuvert(false)}>
-                  Mon espace
-                </Link>
-              </Button>
+              <Link href={dashboardHref} onClick={() => setMenuOuvert(false)} className={boutonOr}>
+                Mon espace
+              </Link>
             ) : (
               <>
                 <Link
                   href="/login"
                   onClick={() => setMenuOuvert(false)}
-                  className="text-sm font-medium text-fg-muted hover:text-fg"
+                  className="flex min-h-11 items-center text-sm text-fg-muted hover:text-fg"
                 >
                   Se connecter
                 </Link>
-                <Button asChild size="sm">
-                  <Link href="/signup" onClick={() => setMenuOuvert(false)}>
-                    Faire une demande
-                  </Link>
-                </Button>
+                <Link href="/signup" onClick={() => setMenuOuvert(false)} className={boutonOr}>
+                  Faire une demande
+                </Link>
               </>
             )}
           </div>

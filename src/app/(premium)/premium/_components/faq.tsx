@@ -1,4 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Surtitre } from "./ornements";
 
 const FAQ_ITEMS = [
   {
@@ -12,14 +13,15 @@ const FAQ_ITEMS = [
       "Oui, vous pouvez refuser ou demander une modification. Votre concierge revient vers vous avec de nouvelles options si besoin.",
   },
   {
+    // Le paiement en ligne n'est pas encore branché (Stripe prévu, voir ROADMAP.md) :
+    // ne pas écrire qu'il fonctionne tant que ce n'est pas le cas.
     question: "Comment se passe le paiement ?",
     answer:
-      "Le paiement s'effectue en ligne via Stripe une fois la proposition acceptée. Aucune donnée bancaire n'est stockée sur nos serveurs.",
+      "Le paiement en ligne n'est pas encore ouvert. Il passera par Stripe, un prestataire de paiement sécurisé : aucune donnée bancaire ne sera stockée sur nos serveurs.",
   },
   {
     question: "Puis-je annuler mon abonnement à tout moment ?",
-    answer:
-      "Oui, sans engagement. La résiliation prend effet à la fin de la période en cours.",
+    answer: "Oui, sans engagement. La résiliation prend effet à la fin de la période en cours.",
   },
   {
     question: "Mes données sont-elles protégées ?",
@@ -30,16 +32,21 @@ const FAQ_ITEMS = [
 
 export function Faq() {
   return (
-    <section id="faq" className="py-20">
-      <div className="mx-auto max-w-2xl px-6">
-        <h2 className="text-center font-display text-3xl font-medium text-fg">
-          Questions fréquentes
-        </h2>
-        <Accordion type="single" collapsible className="mt-10">
+    <section id="faq" className="scroll-mt-20 py-24">
+      <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 lg:flex-row lg:gap-20">
+        <div className="apparition flex flex-col gap-5 lg:w-96 lg:shrink-0">
+          <Surtitre>FAQ</Surtitre>
+          <h2 className="font-display text-4xl leading-tight sm:text-5xl">
+            Questions <em className="text-accent-hover">fréquentes.</em>
+          </h2>
+        </div>
+        <Accordion type="single" collapsible className="apparition flex-1">
           {FAQ_ITEMS.map((item) => (
-            <AccordionItem key={item.question} value={item.question}>
-              <AccordionTrigger>{item.question}</AccordionTrigger>
-              <AccordionContent>{item.answer}</AccordionContent>
+            <AccordionItem key={item.question} value={item.question} className="border-filet">
+              <AccordionTrigger className="min-h-11 py-6 font-display text-xl font-normal sm:text-2xl [&>svg]:h-5 [&>svg]:w-5 [&>svg]:text-accent">
+                {item.question}
+              </AccordionTrigger>
+              <AccordionContent className="max-w-2xl pb-6 text-base leading-relaxed">{item.answer}</AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>

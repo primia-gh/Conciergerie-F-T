@@ -31,14 +31,14 @@ export function SelecteurActivite({
           <LienActivite
             href="/location"
             actif={actif === "ft"}
-            classeActive="bg-[#f6f1e8] text-[#2e3b32]"
+            classeActive="bg-[#f3ede2] text-[#1b241e]"
             nom="F&T"
             precision="Location courte durée"
           />
           <LienActivite
             href="/premium"
             actif={actif === "premium"}
-            classeActive="bg-[#a16207] text-[#fafaf9]"
+            classeActive="bg-[#c9a24e] text-[#0e1a31]"
             nom="Premium"
             precision="Conciergerie privée"
           />

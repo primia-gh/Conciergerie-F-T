@@ -15,12 +15,12 @@ export default async function OpengraphImage() {
             flexDirection: "column",
             justifyContent: "center",
             padding: 64,
-            backgroundColor: "#f6f1e8",
-            color: "#1f2a22",
+            backgroundColor: "#1b241e",
+            color: "#f3ede2",
           }}
         >
-          <div style={{ fontSize: 22, letterSpacing: 4, color: "#4a5d4f" }}>LOCATION COURTE DURÉE</div>
-          <div style={{ fontSize: 60, marginTop: 20, color: "#2e3b32" }}>Conciergerie F&amp;T</div>
+          <div style={{ fontSize: 22, letterSpacing: 4, color: "#e3a07a" }}>LOCATION COURTE DURÉE</div>
+          <div style={{ fontSize: 60, marginTop: 20, color: "#f3ede2" }}>Conciergerie F&amp;T</div>
         </div>
         <div
           style={{
@@ -30,11 +30,11 @@ export default async function OpengraphImage() {
             justifyContent: "center",
             alignItems: "flex-end",
             padding: 64,
-            backgroundColor: "#fafaf9",
-            color: "#1c1917",
+            backgroundColor: "#0e1a31",
+            color: "#f4f1ea",
           }}
         >
-          <div style={{ fontSize: 22, letterSpacing: 4, color: "#a16207" }}>CONCIERGERIE PRIVÉE</div>
+          <div style={{ fontSize: 22, letterSpacing: 4, color: "#c9a24e" }}>CONCIERGERIE PRIVÉE</div>
           <div style={{ fontSize: 60, marginTop: 20 }}>Conciergerie Premium</div>
         </div>
       </div>

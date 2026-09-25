@@ -1,22 +1,27 @@
-import { MessageSquarePlus, Search, ListChecks, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ListChecks, MessageSquarePlus, Search } from "lucide-react";
+import { Surtitre } from "./ornements";
 
 const STEPS = [
   {
+    numero: "I",
     icon: MessageSquarePlus,
     title: "Vous exprimez un besoin",
     description: "En quelques étapes simples : catégorie, description, date, budget.",
   },
   {
+    numero: "II",
     icon: Search,
     title: "Votre concierge recherche",
     description: "Il identifie, compare et contacte les meilleures options pour vous.",
   },
   {
+    numero: "III",
     icon: ListChecks,
     title: "Nous vous proposons",
     description: "Une ou plusieurs solutions concrètes, avec prix et détails complets.",
   },
   {
+    numero: "IV",
     icon: CheckCircle2,
     title: "Vous validez",
     description: "Un clic suffit pour accepter. La réservation se fait sans vous.",
@@ -25,26 +30,35 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section id="comment-ca-marche" className="border-t border-border bg-bg-subtle/50 py-20">
-      <div className="mx-auto max-w-5xl px-6">
-        <div className="mx-auto max-w-xl text-center">
-          <h2 className="font-display text-3xl font-medium text-fg">Comment ça marche</h2>
-          <p className="mt-3 text-fg-muted">
-            Quatre étapes, du besoin exprimé à la réservation confirmée.
-          </p>
+    <section id="comment-ca-marche" className="scroll-mt-20 bg-bg-subtle py-24">
+      <div className="mx-auto flex max-w-6xl flex-col gap-14 px-6">
+        <div className="apparition flex flex-col gap-5">
+          <Surtitre>Comment ça marche</Surtitre>
+          <h2 className="font-display text-4xl leading-tight text-balance sm:text-5xl">
+            Du besoin exprimé à la <em className="text-accent-hover">réservation confirmée.</em>
+          </h2>
         </div>
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((step, index) => (
-            <div key={step.title} className="flex flex-col items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent">
-                <step.icon className="h-5 w-5" />
+        <ol className="relative grid gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
+          <span aria-hidden="true" className="absolute top-[34px] right-0 left-0 hidden h-px bg-filet lg:block" />
+          {STEPS.map((step) => (
+            <li key={step.numero} className="apparition relative flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <span
+                  aria-hidden="true"
+                  className="flex h-[68px] w-[68px] items-center justify-center rounded-full border border-accent bg-bg-subtle font-display text-2xl text-accent-hover italic"
+                >
+                  {step.numero}
+                </span>
+                <step.icon aria-hidden="true" strokeWidth={1.25} className="h-7 w-7 text-accent" />
               </div>
-              <p className="text-xs font-medium text-fg-muted">Étape {index + 1}</p>
-              <h3 className="font-display text-lg font-medium text-fg">{step.title}</h3>
-              <p className="text-sm text-fg-muted">{step.description}</p>
-            </div>
+              <h3 className="font-display text-2xl">
+                <span className="sr-only">Étape {step.numero} : </span>
+                {step.title}
+              </h3>
+              <p className="leading-relaxed text-fg-muted">{step.description}</p>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
     </section>
   );

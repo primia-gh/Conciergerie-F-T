@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { cormorant, karla, montserrat } from "@/app/fonts";
+import { bodoni, jost, karla } from "@/app/fonts";
 import { getCurrentProfile } from "@/server/auth/session";
 import { dashboardPathForRole } from "@/server/auth/guards";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ export default async function PageDeChoix({ searchParams }: PageProps<"/">) {
 
   return (
     <div
-      className={`${karla.variable} ${cormorant.variable} ${montserrat.variable} relative flex min-h-dvh flex-1 flex-col md:flex-row`}
+      className={`${karla.variable} ${bodoni.variable} ${jost.variable} relative flex min-h-dvh flex-1 flex-col md:flex-row`}
     >
       <h1 className="sr-only">Conciergerie F&amp;T et Conciergerie Premium</h1>
 
@@ -51,12 +51,12 @@ export default async function PageDeChoix({ searchParams }: PageProps<"/">) {
       <Link href="/location" className={cn("theme-ft", moitie, "focus-visible:outline-brand")}>
         <span
           aria-hidden="true"
-          className="absolute -right-24 -bottom-32 h-96 w-72 rounded-t-[999px] bg-gradient-to-b from-[#d8ccb6] to-[#b9a98c] opacity-55 md:-right-32 md:-bottom-36 md:h-[680px] md:w-[520px]"
+          className="absolute -right-24 -bottom-32 h-96 w-72 rounded-t-[999px] bg-[radial-gradient(ellipse_at_50%_35%,#3a4a3f_0%,#22302a_70%)] opacity-90 md:-right-32 md:-bottom-36 md:h-[680px] md:w-[520px]"
         />
-        <Image src="/brand/cle-ft.svg" alt="" width={65} height={72} className="relative h-16 w-auto self-start" unoptimized priority />
+        <Image src="/brand/cle-ft-clair.svg" alt="" width={65} height={72} className="relative h-16 w-auto self-start" unoptimized priority />
         <div className="relative flex max-w-lg flex-col items-start gap-6">
-          <span className="text-xs font-semibold tracking-[0.2em] text-[#4a5d4f]">LOCATION COURTE DURÉE</span>
-          <h2 className="font-display text-5xl leading-none font-light tracking-tight md:text-7xl">
+          <span className="text-xs font-semibold tracking-[0.2em] text-accent">LOCATION COURTE DURÉE</span>
+          <h2 className="font-display text-5xl leading-none font-light tracking-tight lg:text-6xl xl:text-7xl">
             Conciergerie <em className="text-accent">F&amp;T</em>
           </h2>
           <span className="text-lg leading-relaxed text-fg-muted">
@@ -72,7 +72,7 @@ export default async function PageDeChoix({ searchParams }: PageProps<"/">) {
       <Link href="/premium" className={cn("theme-premium", moitie, "focus-visible:outline-accent")}>
         <span
           aria-hidden="true"
-          className="absolute inset-x-8 inset-y-32 hidden border border-[rgba(161,98,7,0.3)] md:block lg:inset-x-10"
+          className="absolute inset-x-8 inset-y-32 hidden border border-filet md:block lg:inset-x-10"
         />
         <span className="relative self-start font-display text-2xl tracking-wide md:self-end">
           Conciergerie <em className="text-accent">Premium</em>
@@ -82,7 +82,7 @@ export default async function PageDeChoix({ searchParams }: PageProps<"/">) {
             CONCIERGERIE PRIVÉE
             <span aria-hidden="true" className="h-px w-10 bg-accent" />
           </span>
-          <h2 className="font-display text-5xl leading-[1.02] font-normal md:text-7xl">
+          <h2 className="font-display text-5xl leading-[1.02] font-normal text-balance xl:text-7xl">
             Ce que vous imaginez, <em className="text-accent">nous l&apos;organisons.</em>
           </h2>
           <span className="text-lg leading-relaxed text-fg-muted">

@@ -265,6 +265,8 @@ la page est prérendue, changer la variable exige un nouveau déploiement.
 
 ## Un site, deux activités : page de choix et un thème par activité (2026-09-25)
 
+*Couleurs revues le même jour : voir « Refonte visuelle » ci-dessous (F&T « Nuit en forêt », Premium « Marine & or »).*
+
 **Contexte** : F&T (location courte durée) et Premium (conciergerie privée) partagent le même site
 (décision du 2026-09-17). Maquettes : canevas « Conciergerie F&T — Accueil ».
 
@@ -280,3 +282,23 @@ connectés et de la connexion (choix d'un thème commun « à voir »).
 réservé au bandeau final de Premium, devient la couleur de marque de F&T ; ce bandeau passe sur
 le fond encre de « Noir & or ». Contenu : uniquement des textes de la maquette ou déjà validés ; le
 parcours voyageur (« Je cherche un séjour ») reste caché tant que la réservation n'existe pas.
+
+## Refonte visuelle : F&T « Nuit en forêt », Premium « Marine & or » (2026-09-25)
+
+**Décision du Gérant** : F&T passe à la piste « Nuit en forêt » du canevas (vert nuit #1B241E,
+crème #F3EDE2, terre cuite claire #E3A07A, Fraunces + Karla, logo clair). Premium passe à « Marine &
+or » (bleu nuit #0E1A31, or #C9A24E, Bodoni Moda + Jost), affinée après une analyse ui-ux-pro-max :
+bleu plus profond pour alterner les sections, or clair pour survols et mots en italique, sections
+ivoire (`.theme-premium-clair`, or foncé #7A5812 pour rester lisible). Planches de référence :
+rangée « Premium — refonte Marine & or » du canevas. Contrastes du texte ≥ 4,5 partout.
+
+**Visuels** : sept photos d'ambiance libres de droits (licence Unsplash, crédits dans
+`(premium)/premium/_components/photos.ts`), téléchargées avec l'accord du Gérant et servies depuis
+`public/premium/` : aucun domaine d'images extérieur à autoriser dans la CSP. Elles illustrent des
+univers, jamais un bien ou un partenaire réel. Aucune photo de banque d'images pour F&T : ses
+visuels seront de vraies photos des logements. Icônes Lucide en trait fin doré, soleil Art déco,
+filets, grain léger, apparition douce au défilement (coupée si le visiteur demande moins
+d'animations, et sans effet sans JavaScript).
+
+**Contenu** : la section témoignages vide devient « Nos engagements » (uniquement des faits de la
+FAQ). La FAQ ne dit plus que le paiement passe par Stripe : il n'est pas encore branché.

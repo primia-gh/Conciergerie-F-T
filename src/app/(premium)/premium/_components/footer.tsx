@@ -1,36 +1,34 @@
+const LIENS = [
+  { href: "#comment-ca-marche", label: "Comment ça marche" },
+  { href: "#services", label: "Services" },
+  { href: "#selection", label: "Sélection" },
+  { href: "#tarifs", label: "Formules" },
+  { href: "#faq", label: "FAQ" },
+  { href: "/confidentialite", label: "Confidentialité" },
+];
+// Pages légales à venir (étape 4) : affichées sans lien tant qu'elles n'existent pas.
 const LEGAL_PENDING = ["CGU"];
 
 export function MarketingFooter() {
   return (
-    <footer className="border-t border-border py-10">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-6 text-center sm:flex-row sm:justify-between sm:text-left">
-        <p className="font-display text-sm text-fg">Conciergerie Premium</p>
-        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-          <a href="#comment-ca-marche" className="text-sm text-fg-muted hover:text-fg">
-            Comment ça marche
-          </a>
-          <a href="#services" className="text-sm text-fg-muted hover:text-fg">
-            Services
-          </a>
-          <a href="#selection" className="text-sm text-fg-muted hover:text-fg">
-            Sélection
-          </a>
-          <a href="#tarifs" className="text-sm text-fg-muted hover:text-fg">
-            Tarifs
-          </a>
-          <a href="#faq" className="text-sm text-fg-muted hover:text-fg">
-            FAQ
-          </a>
-          <a href="/confidentialite" className="text-sm text-fg-muted hover:text-fg">
-            Confidentialité
-          </a>
+    <footer className="border-t border-filet bg-bg-subtle py-12">
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-6 text-center lg:flex-row lg:justify-between lg:text-left">
+        <p className="font-display text-xl whitespace-nowrap">
+          Conciergerie <em className="text-accent-hover">Premium</em>
+        </p>
+        <nav aria-label="Pied de page" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+          {LIENS.map((lien) => (
+            <a key={lien.href} href={lien.href} className="text-sm text-fg-muted transition-colors hover:text-fg">
+              {lien.label}
+            </a>
+          ))}
           {LEGAL_PENDING.map((label) => (
-            <span key={label} className="text-sm text-fg-muted/50" title="Page à venir">
-              {label}
+            <span key={label} className="text-sm text-fg-faint" title="Page à venir">
+              {label} (à venir)
             </span>
           ))}
         </nav>
-        <p className="text-xs text-fg-muted">© {new Date().getFullYear()} Conciergerie Premium</p>
+        <p className="text-sm text-fg-muted">© {new Date().getFullYear()} Conciergerie Premium</p>
       </div>
     </footer>
   );

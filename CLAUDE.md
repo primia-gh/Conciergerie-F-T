@@ -77,9 +77,10 @@ déployé et utilisé. Décision du 2026-09-17 : **les deux coexistent sur le m�
 Mis à jour le 2026-09-25. Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
 (étapes 1 et 2 de `docs/instructions-claude-code-2026-09.md`). On travaille désormais sur `master`.
 
-- **Étape 3a faite (2026-09-25)** : `/` = page de choix, `/premium` = ancien accueil Premium en
-  « Noir & or », `/location` = première page F&T, sélecteur en haut des pages publiques, un thème
-  par activité (`globals.css`, `.theme-ft` / `.theme-premium`). Décisions : `DECISIONS.md`.
+- **Étape 3a et refonte visuelle faites (2026-09-25)** : `/` = page de choix, `/premium` = accueil
+  Premium en « Marine & or » avec photos libres de droits, `/location` = première page F&T en « Nuit
+  en forêt », sélecteur en haut des pages publiques, un thème par activité (`globals.css`).
+  Décisions : `DECISIONS.md`. Maquettes : canevas « Conciergerie F&T — Accueil ».
   **Reste 3b** : la page F&T complète de la maquette attend du vrai contenu du Gérant (photos,
   avis, chiffres, zones ; la maquette dit « plusieurs régions », la fiche offre « Grand Est »).
 

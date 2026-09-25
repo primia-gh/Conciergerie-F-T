@@ -2,27 +2,29 @@
 
 /*
  * Charte graphique — voir ARCHITECTURE.md §12.
- * Trois thèmes, une seule liste de jetons (les composants n'utilisent que
- * ceux-ci, jamais une couleur en dur) :
- * - `:root` : thème des espaces connectés et de la connexion, "quiet luxury"
- *   sombre (charbon chaud + laiton). Ce n'est plus le thème des pages
- *   publiques (décision du Gérant du 2026-09-24).
- * - `.theme-ft` : pages publiques de Conciergerie F&T (crème, forêt, terre cuite).
- * - `.theme-premium` : pages publiques de Conciergerie Premium, palette
- *   « Noir & or » choisie par le Gérant le 2026-09-25.
+ * Une seule liste de jetons (les composants n'utilisent que ceux-ci), redéfinie
+ * par thème :
+ * - `:root` : espaces connectés et connexion, "quiet luxury" sombre (charbon
+ *   chaud + laiton). Ce n'est plus le thème des pages publiques.
+ * - `.theme-ft` : pages publiques de Conciergerie F&T, « Nuit en forêt »
+ *   (choix du Gérant, 2026-09-25) — vert nuit, crème, terre cuite claire.
+ * - `.theme-premium` : pages publiques de Conciergerie Premium, « Marine & or »
+ *   (choix du Gérant, 2026-09-25), et `.theme-premium-clair` pour ses
+ *   sections ivoire.
  * Un thème s'applique en posant sa classe sur l'enveloppe de la page (voir
- * les layout.tsx de `(ft)` et `(premium)`). Contrastes vérifiés ≥ 4,5 pour le
- * texte, sauf la terre cuite sur `bg-subtle` (4,36) : ne pas y écrire en
- * terre cuite.
+ * les layout.tsx de `(ft)` et `(premium)`). Contrastes du texte vérifiés
+ * ≥ 4,5 sur les fonds et surfaces de chaque thème.
  */
 :root {
   --color-bg: #14120e;
   --color-bg-subtle: #1c1a15;
   --color-surface: #1f1d18;
+  --color-surface-raised: #26231d;
   --color-fg: #f2efe9;
   --color-fg-muted: #a39a89;
   --color-fg-faint: #7d7566;
   --color-border: #343026;
+  --color-filet: rgb(201 162 92 / 0.35);
 
   --color-accent: #c9a25c;
   --color-accent-hover: #d9b878;
@@ -51,76 +53,98 @@
   --font-heading: var(--font-fraunces);
 }
 
-/* Conciergerie F&T — polices Fraunces (titres) et Karla (texte). */
+/* Conciergerie F&T, « Nuit en forêt » — polices Fraunces (titres) et Karla (texte). */
 .theme-ft {
-  --color-bg: #f6f1e8;
-  --color-bg-subtle: #ede5d6;
-  --color-surface: #fbf8f2;
-  --color-fg: #1f2a22;
-  --color-fg-muted: #5a5347;
-  --color-fg-faint: #6b6358;
-  --color-border: #e4d8c3;
+  --color-bg: #1b241e;
+  --color-bg-subtle: #243029;
+  --color-surface: #243029;
+  --color-surface-raised: #2c3a31;
+  --color-fg: #f3ede2;
+  --color-fg-muted: #b9b2a3;
+  --color-fg-faint: #a39c8e;
+  --color-border: #353c36;
+  --color-filet: rgb(227 160 122 / 0.35);
 
-  /* Terre cuite : voyageurs et actions. */
-  --color-accent: #a94f32;
-  --color-accent-hover: #8f4229;
-  --color-accent-fg: #f6f1e8;
+  /* Terre cuite claire : mots mis en valeur, liens, actions secondaires. */
+  --color-accent: #e3a07a;
+  --color-accent-hover: #edb896;
+  --color-accent-fg: #1b241e;
 
-  /* Forêt profonde : la marque et les propriétaires. */
-  --color-brand: #2e3b32;
-  --color-brand-fg: #f6f1e8;
-  --color-inverse-bg: #2e3b32;
-  --color-inverse-fg: #f6f1e8;
+  /* Crème : action principale (« Je suis propriétaire »). */
+  --color-brand: #f3ede2;
+  --color-brand-fg: #1b241e;
+  --color-inverse-bg: #f3ede2;
+  --color-inverse-fg: #1b241e;
 
-  --color-danger: #b42318;
-  --color-danger-fg: #ffffff;
-  --color-success: #1f7a4d;
-  --color-success-fg: #ffffff;
-  --color-warning: #8a5300;
-  --color-warning-fg: #ffffff;
-
-  --shadow-soft: 0 1px 2px rgb(31 42 34 / 0.06), 0 8px 24px rgb(31 42 34 / 0.08);
+  --color-danger: #f0877a;
+  --color-danger-fg: #1b241e;
+  --color-success: #7ccba2;
+  --color-success-fg: #1b241e;
+  --color-warning: #e8b96a;
+  --color-warning-fg: #1b241e;
 
   --font-body: var(--font-karla);
   --font-heading: var(--font-fraunces);
 }
 
-/* Conciergerie Premium, « Noir & or » — polices Cormorant (titres) et Montserrat (texte). */
+/* Conciergerie Premium, « Marine & or » — polices Bodoni Moda (titres) et Jost (texte). */
 .theme-premium {
-  --color-bg: #fafaf9;
-  --color-bg-subtle: #f5f5f4;
-  --color-surface: #ffffff;
-  --color-fg: #1c1917;
-  --color-fg-muted: #57534e;
-  --color-fg-faint: #6b6560;
-  --color-border: #e7e5e4;
+  --color-bg: #0e1a31;
+  --color-bg-subtle: #0a1427;
+  --color-surface: #15254a;
+  --color-surface-raised: #1c2f5a;
+  --color-fg: #f4f1ea;
+  --color-fg-muted: #aeb6c8;
+  --color-fg-faint: #8e98ae;
+  --color-border: #2b3b61;
+  --color-filet: rgb(201 162 78 / 0.35);
 
-  --color-accent: #a16207;
-  --color-accent-hover: #854d0e;
-  --color-accent-fg: #fafaf9;
+  --color-accent: #c9a24e;
+  --color-accent-hover: #ddbe78;
+  --color-accent-fg: #0e1a31;
 
-  --color-brand: #1c1917;
-  --color-brand-fg: #fafaf9;
-  --color-inverse-bg: #1c1917;
-  --color-inverse-fg: #fafaf9;
+  --color-brand: #c9a24e;
+  --color-brand-fg: #0e1a31;
+  --color-inverse-bg: #0a1427;
+  --color-inverse-fg: #f4f1ea;
 
-  --color-danger: #b42318;
-  --color-danger-fg: #ffffff;
-  --color-success: #1f7a4d;
-  --color-success-fg: #ffffff;
-  --color-warning: #8a5300;
-  --color-warning-fg: #ffffff;
+  --color-danger: #f0877a;
+  --color-danger-fg: #0e1a31;
+  --color-success: #7ccba2;
+  --color-success-fg: #0e1a31;
+  --color-warning: #e8b96a;
+  --color-warning-fg: #0e1a31;
 
-  --shadow-soft: 0 1px 2px rgb(28 25 23 / 0.06), 0 8px 24px rgb(28 25 23 / 0.08);
+  --font-body: var(--font-jost);
+  --font-heading: var(--font-bodoni);
+}
 
-  --font-body: var(--font-montserrat);
-  --font-heading: var(--font-cormorant);
+/* Sections ivoire de Premium (Sélection, Engagements) : or foncé pour rester lisible. */
+.theme-premium-clair {
+  --color-bg: #f4f1ea;
+  --color-bg-subtle: #ece6da;
+  --color-surface: #fbf9f4;
+  --color-surface-raised: #ffffff;
+  --color-fg: #0e1a31;
+  --color-fg-muted: #44506a;
+  --color-fg-faint: #5b6680;
+  --color-border: #e0d8c6;
+  --color-filet: rgb(122 88 18 / 0.35);
+
+  --color-accent: #7a5812;
+  --color-accent-hover: #5e440e;
+  --color-accent-fg: #fbf9f4;
+}
+
+.theme-ft,
+.theme-premium,
+.theme-premium-clair {
+  background: var(--color-bg);
+  color: var(--color-fg);
 }
 
 .theme-ft,
 .theme-premium {
-  background: var(--color-bg);
-  color: var(--color-fg);
   font-family: var(--font-body);
 }
 
@@ -128,10 +152,12 @@
   --color-bg: var(--color-bg);
   --color-bg-subtle: var(--color-bg-subtle);
   --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
   --color-fg: var(--color-fg);
   --color-fg-muted: var(--color-fg-muted);
   --color-fg-faint: var(--color-fg-faint);
   --color-border: var(--color-border);
+  --color-filet: var(--color-filet);
   --color-accent: var(--color-accent);
   --color-accent-hover: var(--color-accent-hover);
   --color-accent-fg: var(--color-accent-fg);
@@ -162,8 +188,38 @@ body {
 
 /* Le fond visible au-delà de la page (défilement élastique) suit l'activité affichée. */
 body:has(.theme-ft) {
-  background: #f6f1e8;
+  background: #1b241e;
 }
 body:has(.theme-premium) {
-  background: #fafaf9;
+  background: #0e1a31;
+}
+
+/* Grain léger sur les grands aplats sombres, pour éviter l'effet « écran plat ». */
+.grain {
+  background-image: radial-gradient(rgb(244 241 234 / 0.035) 1px, transparent 1px);
+  background-size: 3px 3px;
+}
+
+/*
+ * Apparition douce au défilement (voir components/site/apparitions.tsx).
+ * La classe `apparition-active` n'est posée que par JavaScript : sans lui, tout
+ * reste visible. Coupée si le visiteur a demandé moins d'animations.
+ */
+.apparition-active .apparition {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.apparition-active .apparition.est-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .apparition-active .apparition {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }

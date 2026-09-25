@@ -1,4 +1,4 @@
-import { Cormorant, Karla, Montserrat } from "next/font/google";
+import { Bodoni_Moda, Jost, Karla } from "next/font/google";
 
 // Polices des pages publiques, auto-hébergées au build par next/font (aucune
 // requête vers Google chez le visiteur, `font-src 'self'` suffit). Fraunces,
@@ -12,16 +12,19 @@ export const karla = Karla({
   subsets: ["latin"],
 });
 
-/** Titres de Conciergerie Premium (« Noir & or »). */
-export const cormorant = Cormorant({
-  variable: "--font-cormorant",
+/**
+ * Titres de Conciergerie Premium (« Marine & or ») : didone à fort contraste,
+ * avec l'axe optique pour rester fine en très grand et lisible en petit.
+ */
+export const bodoni = Bodoni_Moda({
+  variable: "--font-bodoni",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  axes: ["opsz"],
   style: ["normal", "italic"],
 });
 
-/** Texte de Conciergerie Premium (« Noir & or »). */
-export const montserrat = Montserrat({
-  variable: "--font-montserrat",
+/** Texte de Conciergerie Premium (« Marine & or »). */
+export const jost = Jost({
+  variable: "--font-jost",
   subsets: ["latin"],
 });

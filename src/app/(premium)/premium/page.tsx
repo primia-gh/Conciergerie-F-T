@@ -7,7 +7,7 @@ import { HowItWorks } from "./_components/how-it-works";
 import { Services } from "./_components/services";
 import { Selection } from "./_components/selection";
 import { Membership } from "./_components/membership";
-import { Testimonials } from "./_components/testimonials";
+import { Engagements } from "./_components/engagements";
 import { Faq } from "./_components/faq";
 import { CtaBanner } from "./_components/cta-banner";
 import { MarketingFooter } from "./_components/footer";
@@ -42,7 +42,7 @@ export default async function PremiumPage() {
         <Services />
         <Selection />
         <Membership />
-        <Testimonials />
+        <Engagements />
         <Faq />
         <CtaBanner dashboardHref={dashboardHref} />
       </main>

@@ -2,7 +2,7 @@ import type { Viewport } from "next";
 import { karla } from "@/app/fonts";
 
 export const viewport: Viewport = {
-  themeColor: "#f6f1e8",
+  themeColor: "#1b241e",
 };
 
 /**
