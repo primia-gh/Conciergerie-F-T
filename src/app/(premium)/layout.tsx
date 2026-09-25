@@ -1,5 +1,5 @@
 import type { Viewport } from "next";
-import { bodoni, jost } from "@/app/fonts";
+import { bodoni } from "@/app/fonts";
 import { Apparitions } from "@/components/site/apparitions";
 import { SelecteurActivite } from "@/components/site/selecteur-activite";
 
@@ -14,7 +14,7 @@ export const viewport: Viewport = {
  */
 export default function PremiumLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${bodoni.variable} ${jost.variable} theme-premium flex flex-1 flex-col`}>
+    <div className={`${bodoni.variable} theme-premium flex flex-1 flex-col`}>
       <SelecteurActivite actif="premium" lienConnexion={false} />
       {children}
       <Apparitions />

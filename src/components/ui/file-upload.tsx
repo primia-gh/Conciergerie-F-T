@@ -9,6 +9,8 @@ export interface FileUploadProps {
   multiple?: boolean;
   maxSizeMb?: number;
   onFilesChange: (files: File[]) => void;
+  /** Fichiers déjà choisis, quand le composant réapparaît (formulaire en étapes). */
+  initialFiles?: File[];
   className?: string;
 }
 
@@ -18,10 +20,10 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
-export function FileUpload({ accept, multiple = true, maxSizeMb, onFilesChange, className }: FileUploadProps) {
+export function FileUpload({ accept, multiple = true, maxSizeMb, onFilesChange, initialFiles, className }: FileUploadProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>(initialFiles ?? []);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,7 +101,7 @@ export function FileUpload({ accept, multiple = true, maxSizeMb, onFilesChange, 
               <button
                 type="button"
                 onClick={() => removeFile(index)}
-                className="shrink-0 text-fg-muted transition-colors hover:text-danger"
+                className="-m-2 flex h-9 w-9 shrink-0 items-center justify-center text-fg-muted transition-colors hover:text-danger"
                 aria-label={`Retirer ${file.name}`}
               >
                 <X className="h-4 w-4" />

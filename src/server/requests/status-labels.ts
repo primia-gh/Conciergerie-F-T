@@ -43,3 +43,55 @@ export function requestStatusBadgeVariant(status: string): StatusBadgeVariant {
       return "accent";
   }
 }
+
+/**
+ * Étapes montrées au client dans le suivi d'une demande : une version courte
+ * de la machine à états, sans le vocabulaire interne (brouillon, etc.).
+ */
+export const ETAPES_DEMANDE = [
+  "Demande reçue",
+  "Prise en charge",
+  "Recherche",
+  "Proposition",
+  "Réservation",
+  "Terminée",
+] as const;
+
+/** Index de l'étape en cours dans `ETAPES_DEMANDE`, ou -1 si la demande est annulée. */
+export function etapeDemande(status: string): number {
+  switch (status as RequestStatus) {
+    case "NEW":
+      return 0;
+    case "ASSIGNED":
+      return 1;
+    case "IN_PROGRESS":
+    case "RESEARCHING":
+    case "PROPOSAL_DRAFT":
+    // Proposition refusée : le concierge reprend la recherche.
+    case "REJECTED":
+      return 2;
+    case "PROPOSAL_SENT":
+    case "WAITING_CLIENT":
+      return 3;
+    case "ACCEPTED":
+    case "BOOKING":
+    case "CONFIRMED":
+      return 4;
+    case "COMPLETED":
+      return 5;
+    default:
+      return -1;
+  }
+}
+
+/** Le client doit répondre : une proposition l'attend. */
+export function attenteReponseClient(status: string): boolean {
+  return status === "PROPOSAL_SENT" || status === "WAITING_CLIENT";
+}
+
+export const PRIORITE_LABELS: Record<string, string> = {
+  low: "Basse",
+  normal: "Normale",
+  high: "Haute",
+  urgent: "Urgente",
+};

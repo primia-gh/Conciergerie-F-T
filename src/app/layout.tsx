@@ -1,25 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Jost } from "next/font/google";
 import "./globals.css";
 import { ToastContextProvider } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Texte de « Marine & or » : Premium, connexion, espaces connectés et leurs
+// menus. Posée ici (sur <html>) pour servir aussi hors des enveloppes de thème.
+const jost = Jost({
+  variable: "--font-jost",
   subsets: ["latin"],
 });
 
+// Chasse fixe : seulement dans l'espace du Gérant (contenu des fiches), donc
+// pas préchargée sur les pages publiques.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  axes: ["opsz"],
-  // L'italique sert aux mots mis en valeur des titres F&T (maquette « Lin & forêt »).
-  style: ["normal", "italic"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -37,14 +34,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#14120e",
+  themeColor: "#0e1a31",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${jost.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {/* Premier élément au clavier : saute directement au contenu principal (#contenu). */}

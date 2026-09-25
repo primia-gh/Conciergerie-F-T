@@ -1,22 +1,25 @@
 "use client";
 
-import { useTransition } from "react";
-import { Bell } from "lucide-react";
+import { useState, useTransition } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Bell, BellOff } from "lucide-react";
 import {
   Dropdown,
   DropdownContent,
   DropdownItem,
   DropdownTrigger,
 } from "@/components/ui/dropdown";
-import { Badge } from "@/components/ui/badge";
-import { markNotificationRead } from "@/server/notifications/actions";
+import { markAllNotificationsRead, markNotificationRead } from "@/server/notifications/actions";
 import type { NotificationType } from "@/server/notifications/dispatcher";
+import { lienNotification, type RoleEspace } from "@/components/espace/navigation";
 
 export type NotificationRow = {
   id: string;
   type: NotificationType;
   read_at: string | null;
   created_at: string;
+  payload?: unknown;
 };
 
 const LABELS: Record<NotificationType, string> = {
@@ -32,56 +35,121 @@ const LABELS: Record<NotificationType, string> = {
   REQUEST_COMPLETED: "Demande terminée",
 };
 
-export function NotificationsBell({
-  notifications,
-  currentPath,
-}: {
-  notifications: NotificationRow[];
-  currentPath: string;
-}) {
+/**
+ * Marquer comme lu n'est pas essentiel : en cas d'échec (réseau, session
+ * expirée), la notification redevient simplement non lue au prochain
+ * chargement, sans afficher de page d'erreur.
+ */
+async function enArrierePlan(action: Promise<void>): Promise<void> {
+  try {
+    await action;
+  } catch {
+    // Volontairement ignoré, voir plus haut.
+  }
+}
+
+function depuis(iso: string): string {
+  const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (minutes < 1) return "à l'instant";
+  if (minutes < 60) return `il y a ${minutes} min`;
+  const heures = Math.floor(minutes / 60);
+  if (heures < 24) return `il y a ${heures} h`;
+  return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+}
+
+/**
+ * Cloche de l'espace connecté. Une notification lue l'est tout de suite à
+ * l'écran (sans attendre le serveur) ; celles qui concernent une demande
+ * ouvrent son suivi.
+ */
+export function NotificationsBell({ notifications, role }: { notifications: NotificationRow[]; role: RoleEspace }) {
+  const chemin = usePathname();
   const [, startTransition] = useTransition();
-  const unreadCount = notifications.filter((n) => !n.read_at).length;
+  const [luesIci, setLuesIci] = useState<Set<string> | "toutes">(new Set());
+  const estLue = (n: NotificationRow) => !!n.read_at || luesIci === "toutes" || luesIci.has(n.id);
+  const nonLues = notifications.filter((n) => !estLue(n)).length;
+
+  function marquer(n: NotificationRow) {
+    if (estLue(n)) return;
+    setLuesIci((actuel) => (actuel === "toutes" ? actuel : new Set(actuel).add(n.id)));
+    startTransition(() => enArrierePlan(markNotificationRead(n.id, chemin)));
+  }
+
+  function toutMarquer() {
+    setLuesIci("toutes");
+    startTransition(() => enArrierePlan(markAllNotificationsRead(chemin)));
+  }
 
   return (
     <Dropdown>
       <DropdownTrigger asChild>
         <button
           type="button"
-          className="relative flex h-9 w-9 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-bg-subtle hover:text-fg"
-          aria-label="Notifications"
+          className="relative flex h-11 w-11 items-center justify-center rounded-full text-fg-muted transition-colors hover:bg-surface hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          aria-label={nonLues > 0 ? `Notifications, ${nonLues} non lue${nonLues > 1 ? "s" : ""}` : "Notifications"}
         >
-          <Bell className="h-4 w-4" />
-          {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5">
-              <Badge variant="danger" className="h-4 min-w-4 justify-center px-1 text-[10px]">
-                {unreadCount}
-              </Badge>
+          <Bell aria-hidden="true" className="h-5 w-5" strokeWidth={1.5} />
+          {nonLues > 0 && (
+            <span
+              aria-hidden="true"
+              className="absolute top-1.5 right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-accent-fg"
+            >
+              {nonLues > 9 ? "9+" : nonLues}
             </span>
           )}
         </button>
       </DropdownTrigger>
-      <DropdownContent className="w-80">
+      <DropdownContent align="end" className="w-[min(22rem,calc(100vw-2rem))] p-0">
+        <p className="border-b border-border px-4 py-3 text-sm font-semibold text-fg">Notifications</p>
         {notifications.length === 0 ? (
-          <p className="px-2 py-3 text-sm text-fg-muted">Aucune notification.</p>
+          <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
+            <BellOff aria-hidden="true" className="h-6 w-6 text-fg-faint" strokeWidth={1.5} />
+            <p className="text-sm text-fg-muted">Aucune notification pour le moment.</p>
+          </div>
         ) : (
-          notifications.map((notification) => (
-            <DropdownItem
-              key={notification.id}
-              className="flex flex-col items-start gap-0.5"
-              onSelect={() => {
-                if (!notification.read_at) {
-                  startTransition(() => markNotificationRead(notification.id, currentPath));
-                }
-              }}
-            >
-              <span className={notification.read_at ? "text-fg-muted" : "font-medium text-fg"}>
-                {LABELS[notification.type] ?? notification.type}
-              </span>
-              <span className="text-xs text-fg-muted">
-                {new Date(notification.created_at).toLocaleString("fr-FR")}
-              </span>
-            </DropdownItem>
-          ))
+          <div className="max-h-[min(24rem,60vh)] overflow-y-auto p-1">
+            {notifications.map((n) => {
+              const lue = estLue(n);
+              const href = lienNotification(role, n.payload);
+              const contenu = (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${lue ? "bg-transparent" : "bg-accent"}`}
+                  />
+                  <span className="flex flex-col gap-0.5">
+                    <span className={lue ? "text-fg-muted" : "font-medium text-fg"}>
+                      {LABELS[n.type] ?? n.type}
+                      {!lue && <span className="sr-only"> (non lue)</span>}
+                    </span>
+                    <span className="text-xs text-fg-faint">{depuis(n.created_at)}</span>
+                  </span>
+                </>
+              );
+              return href ? (
+                <DropdownItem key={n.id} asChild className="items-start gap-3 px-3 py-2.5" onSelect={() => marquer(n)}>
+                  <Link href={href}>{contenu}</Link>
+                </DropdownItem>
+              ) : (
+                <DropdownItem key={n.id} className="items-start gap-3 px-3 py-2.5" onSelect={() => marquer(n)}>
+                  {contenu}
+                </DropdownItem>
+              );
+            })}
+          </div>
+        )}
+        {nonLues > 0 && (
+          // Élément du menu (et non simple bouton) pour rester accessible au clavier ;
+          // le menu reste ouvert pour voir le résultat.
+          <DropdownItem
+            className="justify-center rounded-none border-t border-border py-3 text-xs font-medium text-accent"
+            onSelect={(e) => {
+              e.preventDefault();
+              toutMarquer();
+            }}
+          >
+            Tout marquer comme lu
+          </DropdownItem>
         )}
       </DropdownContent>
     </Dropdown>

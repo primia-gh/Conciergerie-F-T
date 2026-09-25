@@ -220,6 +220,7 @@ export default async function ConciergeRequestDetailPage({
               requestId={request.id}
               currentUserId={profile.id}
               initialMessages={messages ?? []}
+              interlocuteur="Le client"
             />
           </div>
         </div>

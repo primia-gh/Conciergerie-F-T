@@ -302,3 +302,24 @@ d'animations, et sans effet sans JavaScript).
 
 **Contenu** : la section témoignages vide devient « Nos engagements » (uniquement des faits de la
 FAQ). La FAQ ne dit plus que le paiement passe par Stripe : il n'est pas encore branché.
+
+## Espaces connectés en « Marine & or », dans un cadre commun (lot C1, 2026-09-25)
+
+**Décision du Gérant** : tous les espaces connectés passent en « Marine & or », comme Premium et la
+connexion. Le thème charbon + laiton disparaît : `:root` porte désormais « Marine & or », ce qui
+habille aussi les menus déroulants et fenêtres affichés hors de l'enveloppe de la page. Jost
+remplace Geist comme texte par défaut.
+
+**Mise en œuvre** : un cadre commun (`src/components/espace/`) posé par chaque layout de rôle et
+par « Mon compte » : barre du haut, menu selon le rôle (`navigation.ts`, testé), notifications,
+menu du compte, menu mobile. Les notifications sont lues dans le cadre, donc présentes sur chaque
+page ; une notification ouvre la demande qu'elle concerne (identifiant vérifié). Le formulaire de
+demande passe de 8 à 4 étapes, les précisions facultatives étant regroupées. Choisir une option
+d'une proposition crée la réservation : une confirmation est demandée avant.
+
+**Polices** : un fichier par activité (`fonts.ts`, `fonts-ft.ts`, `fonts-erreurs.ts` sans
+préchargement) et `experimental.cssChunking: "graph"` dans `next.config.ts`. Avec le réglage par
+défaut, Turbopack rangeait les polices des deux activités dans un fichier CSS commun et chaque page
+les préchargeait toutes. Vérifié dans `next-font-manifest.json` : F&T 4 fichiers de police,
+Premium et espaces connectés 3, page de choix 6. Réglage expérimental : à revoir si une mise à jour
+de Next le retire, et à surveiller (ordre du CSS) après chaque mise à jour.

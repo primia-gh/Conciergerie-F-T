@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { bodoni, jost, karla } from "@/app/fonts";
+import { bodoni } from "@/app/fonts";
+import { fraunces, karla } from "@/app/fonts-ft";
 import { getCurrentProfile } from "@/server/auth/session";
 import { dashboardPathForRole } from "@/server/auth/guards";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,7 @@ export default async function PageDeChoix({ searchParams }: PageProps<"/">) {
   return (
     <main
       id="contenu"
-      className={`${karla.variable} ${bodoni.variable} ${jost.variable} relative flex min-h-dvh flex-1 flex-col md:flex-row`}
+      className={`${karla.variable} ${fraunces.variable} ${bodoni.variable} relative flex min-h-dvh flex-1 flex-col md:flex-row`}
     >
       <DonneesStructurees donnees={DONNEES_SITE} />
       <RecuperationSession />

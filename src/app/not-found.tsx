@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { bodoni, jost, karla } from "@/app/fonts";
+import { bodoniErreurs, frauncesErreurs, karlaErreurs } from "@/app/fonts-erreurs";
 
 export const metadata: Metadata = {
   title: { absolute: "Page introuvable" },
@@ -13,7 +13,7 @@ export default function NotFound() {
   return (
     <main
       id="contenu"
-      className={`${karla.variable} ${bodoni.variable} ${jost.variable} theme-premium grain flex min-h-dvh flex-1 flex-col items-center justify-center gap-12 px-6 py-16 text-center`}
+      className={`${karlaErreurs.variable} ${frauncesErreurs.variable} ${bodoniErreurs.variable} theme-premium grain flex min-h-dvh flex-1 flex-col items-center justify-center gap-12 px-6 py-16 text-center`}
     >
       <div className="flex flex-col items-center gap-5">
         <p className="font-display text-7xl text-accent-hover italic sm:text-8xl">404</p>

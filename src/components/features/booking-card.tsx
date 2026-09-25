@@ -1,11 +1,13 @@
 "use client";
 
 import { useTransition } from "react";
+import { CalendarCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { confirmBooking, completeBooking } from "@/server/bookings/actions";
+import { euros } from "@/lib/dates";
+import { cn } from "@/lib/utils";
 
 export type BookingInfo = {
   id: string;
@@ -25,10 +27,12 @@ export function BookingCard({
   booking,
   requestId,
   canManage,
+  className = "mt-6",
 }: {
   booking: BookingInfo;
   requestId: string;
   canManage: boolean;
+  className?: string;
 }) {
   const [pending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -43,34 +47,43 @@ export function BookingCard({
   }
 
   return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle>Réservation</CardTitle>
-      </CardHeader>
-      <CardContent className="flex items-center justify-between">
-        <div>
-          <p className="text-fg">
-            {booking.optionName} — {booking.optionPrice}€
-          </p>
-          <Badge variant={booking.status === "completed" ? "success" : "accent"} className="mt-1">
-            {STATUS_LABEL[booking.status] ?? booking.status}
-          </Badge>
+    <section
+      aria-labelledby={`reservation-${booking.id}`}
+      className={cn("rounded-lg border border-accent/60 bg-surface p-5 sm:p-6", className)}
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/15">
+            <CalendarCheck aria-hidden="true" className="h-5 w-5 text-accent" strokeWidth={1.5} />
+          </span>
+          <div>
+            <h2 id={`reservation-${booking.id}`} className="text-xs font-medium tracking-[0.2em] text-fg-muted uppercase">
+              Réservation
+            </h2>
+            <p className="mt-1 font-display text-2xl text-fg">{booking.optionName}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <span className="text-fg">{euros(booking.optionPrice)}</span>
+              <Badge variant={booking.status === "cancelled" ? "danger" : booking.status === "pending" ? "accent" : "success"}>
+                {STATUS_LABEL[booking.status] ?? booking.status}
+              </Badge>
+            </div>
+          </div>
         </div>
         {canManage && (
           <div className="flex gap-2">
             {booking.status === "pending" && (
-              <Button size="sm" disabled={pending} onClick={() => handle(confirmBooking)}>
+              <Button disabled={pending} onClick={() => handle(confirmBooking)}>
                 Confirmer la réservation
               </Button>
             )}
             {booking.status === "confirmed" && (
-              <Button size="sm" disabled={pending} onClick={() => handle(completeBooking)}>
+              <Button disabled={pending} onClick={() => handle(completeBooking)}>
                 Marquer comme terminée
               </Button>
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

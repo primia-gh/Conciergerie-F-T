@@ -1,11 +1,8 @@
 import type { ReactNode } from "react";
 import { requireRole } from "@/server/auth/guards";
+import { CadreEspace } from "@/components/espace/cadre-espace";
 
 export default async function PartnerSpaceLayout({ children }: { children: ReactNode }) {
-  await requireRole("partner");
-  return (
-    <main id="contenu" className="flex flex-1 flex-col">
-      {children}
-    </main>
-  );
+  const profile = await requireRole("partner");
+  return <CadreEspace profile={profile}>{children}</CadreEspace>;
 }

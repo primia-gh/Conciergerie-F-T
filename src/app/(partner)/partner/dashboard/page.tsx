@@ -1,31 +1,19 @@
-import Link from "next/link";
+import { Handshake } from "lucide-react";
 import { getCurrentProfile } from "@/server/auth/session";
-import { SignOutButton } from "@/components/features/sign-out-button";
+import { EtatVide } from "@/components/espace/etat-vide";
 
 export default async function PartnerDashboardPage() {
   const profile = await getCurrentProfile();
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium uppercase tracking-widest text-zinc-400">
-            NOT IMPLEMENTED
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Espace partenaire — {profile?.first_name ?? ""}
-          </h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            La gestion des services et réservations arrive en Phase M13 (voir ROADMAP.md).
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/account" className="text-sm text-zinc-600 hover:underline dark:text-zinc-400">
-            Mon compte
-          </Link>
-          <SignOutButton />
-        </div>
-      </div>
+    <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+      <p className="text-xs font-medium tracking-[0.2em] text-accent uppercase">Espace partenaire</p>
+      <h1 className="mt-3 font-display text-4xl text-fg">Bonjour {profile?.first_name ?? ""}</h1>
+      {/* Non construit : gestion des services et réservations (Phase M13, voir ROADMAP.md). */}
+      <EtatVide icone={Handshake} titre="Votre espace est en préparation" className="mt-10">
+        La gestion de vos services et de vos réservations arrivera ici dans une prochaine version.
+        En attendant, votre contact habituel reste disponible pour toute question.
+      </EtatVide>
     </div>
   );
 }

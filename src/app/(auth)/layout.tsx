@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Viewport } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { bodoni, jost } from "@/app/fonts";
+import { bodoni } from "@/app/fonts";
 import { PhotoCadree, Soleil } from "@/components/premium/ornements";
 import { PHOTOS } from "@/components/premium/photos";
 
@@ -17,7 +17,7 @@ export const viewport: Viewport = {
  */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className={`${bodoni.variable} ${jost.variable} theme-premium grain flex min-h-dvh flex-1`}>
+    <div className={`${bodoni.variable} theme-premium grain flex min-h-dvh flex-1`}>
       <main id="contenu" className="flex w-full flex-col px-6 py-8 sm:px-10 lg:w-1/2 lg:px-16">
         <div className="flex items-center justify-between gap-4">
           <Link

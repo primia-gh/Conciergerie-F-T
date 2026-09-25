@@ -58,6 +58,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // CSS regroupé par parcours (Turbopack). Avec le réglage par défaut, les
+  // polices de F&T et de « Marine & or » tombaient dans un fichier commun et
+  // chaque page les préchargeait toutes (≈ 180 Ko de trop). Voir app/fonts.ts.
+  experimental: {
+    cssChunking: "graph",
+  },
   async headers() {
     return [
       {

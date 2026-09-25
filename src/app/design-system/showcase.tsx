@@ -80,8 +80,8 @@ export function DesignSystemShowcase() {
 
       <Section title="Typographie">
         <div className="flex flex-col gap-3">
-          <p className="font-display text-3xl text-fg">Fraunces — titres</p>
-          <p className="font-sans text-base text-fg">Geist Sans — texte courant et interface</p>
+          <p className="font-display text-3xl text-fg">Bodoni Moda — titres</p>
+          <p className="font-sans text-base text-fg">Jost — texte courant et interface</p>
           <p className="font-mono text-sm text-fg-muted">Geist Mono — code, identifiants</p>
         </div>
       </Section>

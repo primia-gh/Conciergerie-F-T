@@ -1,5 +1,5 @@
 import type { Viewport } from "next";
-import { karla } from "@/app/fonts";
+import { fraunces, karla } from "@/app/fonts-ft";
 
 export const viewport: Viewport = {
   themeColor: "#1b241e",
@@ -11,5 +11,5 @@ export const viewport: Viewport = {
  * propriétaire (portail), qui n'ont ni en-tête ni sélecteur.
  */
 export default function FtLayout({ children }: { children: React.ReactNode }) {
-  return <div className={`${karla.variable} theme-ft flex flex-1 flex-col`}>{children}</div>;
+  return <div className={`${karla.variable} ${fraunces.variable} theme-ft flex flex-1 flex-col`}>{children}</div>;
 }

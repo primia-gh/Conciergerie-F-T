@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { RotateCcw } from "lucide-react";
-import { bodoni, jost } from "@/app/fonts";
+import { bodoniErreurs } from "@/app/fonts-erreurs";
 
 /**
  * Erreur inattendue dans une page : message clair, bouton pour réessayer,
@@ -18,7 +18,7 @@ export default function ErreurPage({ error, retry }: { error: Error & { digest?:
   return (
     <main
       id="contenu"
-      className={`${bodoni.variable} ${jost.variable} theme-premium grain flex min-h-dvh flex-1 flex-col items-center justify-center gap-8 px-6 py-16 text-center`}
+      className={`${bodoniErreurs.variable} theme-premium grain flex min-h-dvh flex-1 flex-col items-center justify-center gap-8 px-6 py-16 text-center`}
     >
       <div className="flex flex-col items-center gap-4">
         <h1 className="font-display text-4xl sm:text-5xl">Un imprévu est survenu.</h1>

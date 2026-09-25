@@ -89,9 +89,9 @@ export function NouvelleDemandeForm({ logements }: { logements: { id: string; no
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="contenu">Message reçu</Label>
+        <Label htmlFor="message-recu">Message reçu</Label>
         <Textarea
-          id="contenu"
+          id="message-recu"
           name="contenu"
           rows={8}
           required

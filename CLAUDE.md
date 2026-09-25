@@ -74,7 +74,7 @@ déployé et utilisé. Décision du 2026-09-17 : **les deux coexistent sur le m�
 
 ## Où on en est
 
-Mis à jour le 2026-09-25 (lots A et B). Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
+Mis à jour le 2026-09-25 (lots A, B et C1). Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
 (étapes 1 et 2 de `docs/instructions-claude-code-2026-09.md`). On travaille désormais sur `master`.
 
 - **Étape 3a et refonte visuelle faites (2026-09-25)** : `/` = page de choix, `/premium` = accueil
@@ -93,6 +93,18 @@ Mis à jour le 2026-09-25 (lots A et B). Branche `v2-assistant-gerant` **fusionn
 - **Compte admin de production** créé le 2026-09-24 par le Gérant (Supabase → Add user, puis rôle
   passé à `admin` en SQL, comme `seed-dev-accounts.sql`). Connexion et écrans `/admin/boite`,
   `/admin/fiches` vérifiés en ligne. Le compte admin utilisé avant n'existait que sur la base de dev.
+- **Lot C1 « espaces connectés » fait (2026-09-25)** : tous les espaces connectés (client,
+  concierge, partenaire, Gérant, « Mon compte ») passent en « Marine & or » dans un cadre commun
+  (`src/components/espace/` : barre du haut, menu selon le rôle, cloche qui ouvre la demande
+  concernée et « tout marquer comme lu », menu du compte, menu mobile). Espace client refait :
+  tableau de bord (propositions à traiter en tête, suivi en six étapes, forfait, suggestions par
+  catégorie quand rien n'est en cours), nouvelle demande en 4 étapes au lieu de 8, suivi d'une
+  demande (étapes, choix d'une option avec confirmation, messages), chargements en squelette.
+  « Mon compte » : e-mail affiché, changement de mot de passe sans e-mail. Dates à l'heure de
+  Paris (`src/lib/dates.ts`). Polices rangées par activité + `cssChunking: "graph"` : chaque page
+  ne précharge que les siennes. **Vérifié** sur une page d'aperçu à données fictives (base de dev
+  en pause), jamais avec un vrai compte client : à essayer en ligne. **Reste C2** : contenu des
+  espaces concierge, partenaire et Gérant (le cadre est déjà en place).
 - **Lot B « acquisition de propriétaires F&T » fait (2026-09-25)** : `/proprietaires` complète
   (fiche offre validée publiée telle quelle : 20 %, sans engagement, Grand Est, services, déroulé,
   FAQ) et formulaire d'estimation (`src/server/agent/estimation.ts`, action publique : champ piège,
@@ -115,7 +127,7 @@ Mis à jour le 2026-09-25 (lots A et B). Branche `v2-assistant-gerant` **fusionn
 - **Base de dev en pause** (limite de deux projets gratuits) : `.env.local` pointe encore vers elle,
   donc le serveur local ne peut pas lire de données. Solution à choisir avec le Gérant (voir
   `docs/instructions-claude-code-2026-09.md`). Ne jamais pointer le local vers la production.
-- **Construit et testé** (348 tests + audits SQL sur la base de dev) : boîte de réception
+- **Construit et testé** (361 tests + audits SQL sur la base de dev) : boîte de réception
   (`/admin/boite`), fiches et logements (`/admin/fiches`), assistant du Gérant, garde-fous, journal
   verrouillé, tests de sécurité. Le chat public de prospection est construit mais **désactivé**.
 - **Rien ne part automatiquement** : toutes les tâches de l'assistant sont au niveau « Propose ».

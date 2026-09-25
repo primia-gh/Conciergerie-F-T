@@ -1,7 +1,5 @@
-import Link from "next/link";
 import { getCurrentProfile } from "@/server/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { SignOutButton } from "@/components/features/sign-out-button";
 import { StatTile } from "@/components/features/stat-tile";
 import { HorizontalBarChart } from "@/components/features/horizontal-bar-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,19 +83,9 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-16">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-medium text-fg">
-            Back-office — {profile?.first_name ?? ""}
-          </h1>
-          <p className="mt-1 text-fg-muted">Vue d&apos;ensemble de la plateforme.</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Link href="/account" className="text-sm text-fg-muted hover:underline">
-            Mon compte
-          </Link>
-          <SignOutButton />
-        </div>
+      <div>
+        <h1 className="font-display text-3xl text-fg">Bonjour {profile?.first_name ?? ""}</h1>
+        <p className="mt-1 text-fg-muted">Vue d&apos;ensemble de la plateforme.</p>
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">

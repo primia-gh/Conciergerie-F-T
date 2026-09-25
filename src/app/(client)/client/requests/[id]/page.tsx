@@ -1,18 +1,13 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/auth/session";
-import { Badge } from "@/components/ui/badge";
-import {
-  AttachmentsCard,
-  HistoryCard,
-  RequestDetailCard,
-  type AttachmentLink,
-  type HistoryRow,
-} from "@/components/features/request-detail-card";
-import { MessageThread, type ThreadMessage } from "@/components/features/message-thread";
-import { BookingCard } from "@/components/features/booking-card";
-import { ProposalComparison, type OptionForComparison } from "./proposal-comparison";
+import type { AttachmentLink, HistoryRow } from "@/components/features/request-detail-card";
+import type { ThreadMessage } from "@/components/features/message-thread";
+import type { OptionForComparison } from "./proposal-comparison";
+import { VueDemande } from "./vue-demande";
+
+export const metadata: Metadata = { title: "Suivi de ma demande" };
 
 type ProposalRow = { id: string; status: string; created_at: string };
 
@@ -35,7 +30,8 @@ type RequestDetail = {
   budget_max: string | null;
   preferences: string | null;
   concierge_id: string | null;
-  categories: { name: string } | null;
+  created_at: string;
+  categories: { name: string; icon: string | null } | null;
 };
 
 type AttachmentRow = {
@@ -54,7 +50,7 @@ export default async function ClientRequestDetailPage({
   const { data: request } = await supabase
     .from("requests")
     .select(
-      "id, title, description, status, priority, location_text, requested_date, requested_time, budget_min, budget_max, preferences, concierge_id, categories(name)",
+      "id, title, description, status, priority, location_text, requested_date, requested_time, budget_min, budget_max, preferences, concierge_id, created_at, categories(name, icon)",
     )
     .eq("id", id)
     .maybeSingle<RequestDetail>();
@@ -128,75 +124,30 @@ export default async function ClientRequestDetailPage({
     .maybeSingle<BookingRow>();
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16">
-      <Link href="/client/dashboard" className="text-sm text-fg-muted hover:text-fg">
-        ← Retour au dashboard
-      </Link>
-
-      <div className="mt-4 flex items-start justify-between">
-        <div>
-          <p className="text-sm text-fg-muted">{request.categories?.name}</p>
-          <h1 className="font-display text-2xl font-medium text-fg">{request.title}</h1>
-        </div>
-        <Badge variant="accent">{request.status}</Badge>
-      </div>
-
-      <p className="mt-2 text-sm text-fg-muted">
-        {conciergeProfile
-          ? `Votre concierge : ${conciergeProfile.first_name ?? ""} ${conciergeProfile.last_name ?? ""}`
-          : "Concierge en cours d'attribution."}
-      </p>
-
-      <RequestDetailCard request={request} />
-      <AttachmentsCard attachments={attachmentLinks} />
-      <HistoryCard history={history ?? []} />
-
-      {booking && (
-        <BookingCard
-          booking={{
-            id: booking.id,
-            status: booking.status,
-            optionName: booking.proposal_options?.name ?? "—",
-            optionPrice: booking.proposal_options?.price ?? "0",
-          }}
-          requestId={request.id}
-          canManage={false}
-        />
-      )}
-
-      {proposalsWithOptions.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-fg-muted">
-            Propositions reçues
-          </h2>
-          <div className="mt-3 flex flex-col gap-6">
-            {proposalsWithOptions.map((proposal) => (
-              <ProposalComparison
-                key={proposal.id}
-                proposalId={proposal.id}
-                requestId={request.id}
-                status={proposal.status}
-                options={proposal.options}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {request.concierge_id && profile && (
-        <div className="mt-6">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-fg-muted">
-            Messages avec votre concierge
-          </h2>
-          <div className="mt-3">
-            <MessageThread
-              requestId={request.id}
-              currentUserId={profile.id}
-              initialMessages={messages ?? []}
-            />
-          </div>
-        </div>
-      )}
-    </div>
+    <VueDemande
+      d={{
+        demande: {
+          ...request,
+          categorie: request.categories?.name ?? null,
+          icone: request.categories?.icon ?? null,
+        },
+        concierge: conciergeProfile
+          ? { prenom: conciergeProfile.first_name, nom: conciergeProfile.last_name }
+          : null,
+        historique: history ?? [],
+        piecesJointes: attachmentLinks,
+        propositions: proposalsWithOptions,
+        reservation: booking
+          ? {
+              id: booking.id,
+              status: booking.status,
+              optionName: booking.proposal_options?.name ?? "—",
+              optionPrice: booking.proposal_options?.price ?? "0",
+            }
+          : null,
+        messages: messages ?? [],
+        moi: profile?.id ?? null,
+      }}
+    />
   );
 }

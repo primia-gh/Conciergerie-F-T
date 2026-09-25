@@ -1,56 +1,66 @@
 @import "tailwindcss";
 
 /*
- * Charte graphique — voir ARCHITECTURE.md §12.
+ * Charte graphique — voir DECISIONS.md (« Refonte visuelle », « Espaces connectés »).
  * Une seule liste de jetons (les composants n'utilisent que ceux-ci), redéfinie
  * par thème :
- * - `:root` : espaces connectés et connexion, "quiet luxury" sombre (charbon
- *   chaud + laiton). Ce n'est plus le thème des pages publiques.
+ * - `:root` et `.theme-premium` : « Marine & or » (choix du Gérant,
+ *   2026-09-25) — pages publiques de Conciergerie Premium, connexion et tous
+ *   les espaces connectés (client, concierge, partenaire, Gérant). `:root`
+ *   sert aussi aux menus déroulants et fenêtres, affichés hors de l'enveloppe.
  * - `.theme-ft` : pages publiques de Conciergerie F&T, « Nuit en forêt »
  *   (choix du Gérant, 2026-09-25) — vert nuit, crème, terre cuite claire.
- * - `.theme-premium` : pages publiques de Conciergerie Premium, « Marine & or »
- *   (choix du Gérant, 2026-09-25), et `.theme-premium-clair` pour ses
- *   sections ivoire.
+ * - `.theme-premium-clair` : sections ivoire de Premium.
  * Un thème s'applique en posant sa classe sur l'enveloppe de la page (voir
- * les layout.tsx de `(ft)` et `(premium)`). Contrastes du texte vérifiés
- * ≥ 4,5 sur les fonds et surfaces de chaque thème.
+ * les layout.tsx de `(ft)` et `(premium)`, et components/espace). Contrastes
+ * du texte vérifiés ≥ 4,5 sur les fonds et surfaces de chaque thème.
  */
 :root {
-  --color-bg: #14120e;
-  --color-bg-subtle: #1c1a15;
-  --color-surface: #1f1d18;
-  --color-surface-raised: #26231d;
-  --color-fg: #f2efe9;
-  --color-fg-muted: #a39a89;
-  --color-fg-faint: #7d7566;
-  --color-border: #343026;
-  --color-filet: rgb(201 162 92 / 0.35);
-
-  --color-accent: #c9a25c;
-  --color-accent-hover: #d9b878;
-  --color-accent-fg: #14120e;
-
-  /* Couleur de marque et fond inversé : propres à chaque activité, repli sur l'accent ici. */
-  --color-brand: var(--color-accent);
-  --color-brand-fg: var(--color-accent-fg);
-  --color-inverse-bg: var(--color-fg);
-  --color-inverse-fg: var(--color-bg);
-
-  --color-danger: #d97468;
-  --color-danger-fg: #2a1310;
-  --color-success: #6fbb96;
-  --color-success-fg: #0f211a;
-  --color-warning: #d9a768;
-  --color-warning-fg: #2a1d0f;
-
   --radius-sm: 0.375rem;
   --radius-md: 0.625rem;
   --radius-lg: 1rem;
 
-  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.2), 0 8px 24px rgb(0 0 0 / 0.35);
+  --shadow-soft: 0 1px 2px rgb(3 8 20 / 0.3), 0 12px 32px rgb(3 8 20 / 0.4);
+}
 
-  --font-body: var(--font-geist-sans);
-  --font-heading: var(--font-fraunces);
+/*
+ * « Marine & or » — polices Jost (texte, posée sur <html>) et Bodoni Moda
+ * (titres, posée sur l'enveloppe qui porte `.theme-premium`). Hors enveloppe
+ * (menus déroulants, fenêtres), les titres retombent sur Jost.
+ */
+:root,
+.theme-premium {
+  --color-bg: #0e1a31;
+  --color-bg-subtle: #0a1427;
+  --color-surface: #15254a;
+  --color-surface-raised: #1c2f5a;
+  --color-fg: #f4f1ea;
+  --color-fg-muted: #aeb6c8;
+  --color-fg-faint: #8e98ae;
+  --color-border: #2b3b61;
+  --color-filet: rgb(201 162 78 / 0.35);
+
+  --color-accent: #c9a24e;
+  --color-accent-hover: #ddbe78;
+  --color-accent-fg: #0e1a31;
+
+  --color-brand: #c9a24e;
+  --color-brand-fg: #0e1a31;
+  --color-inverse-bg: #0a1427;
+  --color-inverse-fg: #f4f1ea;
+
+  --color-danger: #f0877a;
+  --color-danger-fg: #0e1a31;
+  --color-success: #7ccba2;
+  --color-success-fg: #0e1a31;
+  --color-warning: #e8b96a;
+  --color-warning-fg: #0e1a31;
+
+  --font-body: var(--font-jost);
+  --font-heading: var(--font-bodoni, var(--font-jost));
+
+  /* Calendriers, horloges et barres de défilement natifs en sombre. */
+  color-scheme: dark;
 }
 
 /* Conciergerie F&T, « Nuit en forêt » — polices Fraunces (titres) et Karla (texte). */
@@ -85,38 +95,8 @@
 
   --font-body: var(--font-karla);
   --font-heading: var(--font-fraunces);
-}
 
-/* Conciergerie Premium, « Marine & or » — polices Bodoni Moda (titres) et Jost (texte). */
-.theme-premium {
-  --color-bg: #0e1a31;
-  --color-bg-subtle: #0a1427;
-  --color-surface: #15254a;
-  --color-surface-raised: #1c2f5a;
-  --color-fg: #f4f1ea;
-  --color-fg-muted: #aeb6c8;
-  --color-fg-faint: #8e98ae;
-  --color-border: #2b3b61;
-  --color-filet: rgb(201 162 78 / 0.35);
-
-  --color-accent: #c9a24e;
-  --color-accent-hover: #ddbe78;
-  --color-accent-fg: #0e1a31;
-
-  --color-brand: #c9a24e;
-  --color-brand-fg: #0e1a31;
-  --color-inverse-bg: #0a1427;
-  --color-inverse-fg: #f4f1ea;
-
-  --color-danger: #f0877a;
-  --color-danger-fg: #0e1a31;
-  --color-success: #7ccba2;
-  --color-success-fg: #0e1a31;
-  --color-warning: #e8b96a;
-  --color-warning-fg: #0e1a31;
-
-  --font-body: var(--font-jost);
-  --font-heading: var(--font-bodoni);
+  color-scheme: dark;
 }
 
 /* Sections ivoire de Premium (Sélection, Engagements) : or foncé pour rester lisible. */
@@ -134,6 +114,8 @@
   --color-accent: #7a5812;
   --color-accent-hover: #5e440e;
   --color-accent-fg: #fbf9f4;
+
+  color-scheme: light;
 }
 
 .theme-ft,
@@ -192,6 +174,22 @@ body:has(.theme-ft) {
 }
 body:has(.theme-premium) {
   background: #0e1a31;
+}
+
+/* Squelette de chargement (voir components/espace/squelettes.tsx). */
+.squelette {
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .squelette {
+    animation: squelette-pulsation 1.6s ease-in-out infinite;
+  }
+}
+@keyframes squelette-pulsation {
+  50% {
+    opacity: 0.55;
+  }
 }
 
 /* Grain léger sur les grands aplats sombres, pour éviter l'effet « écran plat ». */
