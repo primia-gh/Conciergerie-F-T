@@ -26,7 +26,7 @@ export default async function AdminFtProspectDetailPage({ params }: PageProps<"/
   const { data: bienProspect } = await supabase
     .from("bien_prospect")
     .select(
-      "id, type, adresse, residence_principale, capacite, equipements, disponibilite_souhaitee, proprietaire:proprietaire_id(id, nom, email, telephone, statut, source)",
+      "id, type, adresse, residence_principale, capacite, equipements, disponibilite_souhaitee, created_at, proprietaire:proprietaire_id(id, nom, email, telephone, statut, source, notes)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -112,6 +112,23 @@ export default async function AdminFtProspectDetailPage({ params }: PageProps<"/
           <div>
             <p className="text-fg-muted">Disponibilité souhaitée</p>
             <p className="text-fg">{bienProspect.disponibilite_souhaitee ?? "—"}</p>
+          </div>
+          <div>
+            <p className="text-fg-muted">Origine</p>
+            <p className="text-fg">
+              {proprietaire.source === "formulaire_estimation"
+                ? "Formulaire d'estimation (rappel promis sous 24 h)"
+                : proprietaire.source === "chat_site"
+                  ? "Chat du site"
+                  : (proprietaire.source ?? "—")}
+            </p>
+            <p className="text-fg-muted">
+              {new Date(bienProspect.created_at).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Paris" })}
+            </p>
+          </div>
+          <div className="col-span-2">
+            <p className="text-fg-muted">Message du propriétaire</p>
+            <p className="whitespace-pre-line text-fg">{proprietaire.notes ?? "—"}</p>
           </div>
         </CardContent>
       </Card>

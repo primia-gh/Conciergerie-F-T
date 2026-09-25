@@ -20,6 +20,7 @@ import * as boite from "./boite";
 import * as fichesAdmin from "./fiches-admin";
 import * as ftAdmin from "./ft-admin";
 import * as chat from "./chat";
+import * as estimation from "./estimation";
 
 const UUID = "11111111-1111-4111-8111-111111111111";
 const formulaire = () => new FormData();
@@ -43,6 +44,8 @@ const ACTIONS_GERANT: Record<string, () => Promise<unknown>> = {
 const ACTIONS_PUBLIQUES: Record<string, string> = {
   envoyerMessageProprietaire:
     "chat de prospection ouvert aux visiteurs ; désactivé par défaut (CHAT_PROSPECTION_ACTIF), limité en débit",
+  demanderEstimation:
+    "formulaire public « Estimer mes revenus » : champ piège, délai minimum, limite de débit ; testé dans estimation.test.ts",
 };
 
 beforeEach(() => {
@@ -52,7 +55,7 @@ beforeEach(() => {
 
 describe("toutes les actions serveur exigent le rôle admin", () => {
   it("aucune action n'a été oubliée : chaque fonction exportée est soit testée ici, soit déclarée publique avec sa raison", () => {
-    const exportees = [boite, fichesAdmin, ftAdmin, chat].flatMap((module) =>
+    const exportees = [boite, fichesAdmin, ftAdmin, chat, estimation].flatMap((module) =>
       Object.entries(module)
         .filter(([, valeur]) => typeof valeur === "function")
         .map(([nom]) => nom),

@@ -74,7 +74,7 @@ déployé et utilisé. Décision du 2026-09-17 : **les deux coexistent sur le m�
 
 ## Où on en est
 
-Mis à jour le 2026-09-25 (lot A). Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
+Mis à jour le 2026-09-25 (lots A et B). Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
 (étapes 1 et 2 de `docs/instructions-claude-code-2026-09.md`). On travaille désormais sur `master`.
 
 - **Étape 3a et refonte visuelle faites (2026-09-25)** : `/` = page de choix, `/premium` = accueil
@@ -93,6 +93,12 @@ Mis à jour le 2026-09-25 (lot A). Branche `v2-assistant-gerant` **fusionnée da
 - **Compte admin de production** créé le 2026-09-24 par le Gérant (Supabase → Add user, puis rôle
   passé à `admin` en SQL, comme `seed-dev-accounts.sql`). Connexion et écrans `/admin/boite`,
   `/admin/fiches` vérifiés en ligne. Le compte admin utilisé avant n'existait que sur la base de dev.
+- **Lot B « acquisition de propriétaires F&T » fait (2026-09-25)** : `/proprietaires` complète
+  (fiche offre validée publiée telle quelle : 20 %, sans engagement, Grand Est, services, déroulé,
+  FAQ) et formulaire d'estimation (`src/server/agent/estimation.ts`, action publique : champ piège,
+  délai minimum, limite de débit) → propriétaire « prospect » + bien dans `/admin/ft`, journal
+  `demande_estimation`, alerte au Gérant si Resend est branché. Promesse affichée : rappel sous 24 h
+  (accord du Gérant). Pas de relance automatique pour ces demandes.
 - **Lot A « fondations » fait (2026-09-25)** : mot de passe oublié (`/mot-de-passe-oublie`,
   `/nouveau-mot-de-passe`), arrivée des liens e-mail (`/auth/callback` ; liens du tableau de bord
   Supabase récupérés par `recuperation-session.tsx`), retour vers la page demandée après
@@ -109,7 +115,7 @@ Mis à jour le 2026-09-25 (lot A). Branche `v2-assistant-gerant` **fusionnée da
 - **Base de dev en pause** (limite de deux projets gratuits) : `.env.local` pointe encore vers elle,
   donc le serveur local ne peut pas lire de données. Solution à choisir avec le Gérant (voir
   `docs/instructions-claude-code-2026-09.md`). Ne jamais pointer le local vers la production.
-- **Construit et testé** (342 tests + audits SQL sur la base de dev) : boîte de réception
+- **Construit et testé** (348 tests + audits SQL sur la base de dev) : boîte de réception
   (`/admin/boite`), fiches et logements (`/admin/fiches`), assistant du Gérant, garde-fous, journal
   verrouillé, tests de sécurité. Le chat public de prospection est construit mais **désactivé**.
 - **Rien ne part automatiquement** : toutes les tâches de l'assistant sont au niveau « Propose ».

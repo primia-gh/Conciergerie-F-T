@@ -9,7 +9,19 @@ type ProspectRow = {
   adresse: string | null;
   disponibilite_souhaitee: string | null;
   created_at: string;
-  proprietaire: { id: string; nom: string; email: string | null; statut: string } | null;
+  proprietaire: {
+    id: string;
+    nom: string;
+    email: string | null;
+    telephone: string | null;
+    statut: string;
+    source: string | null;
+  } | null;
+};
+
+const ORIGINE: Record<string, string> = {
+  formulaire_estimation: "Formulaire d'estimation",
+  chat_site: "Chat du site",
 };
 
 const STATUT_VARIANT: Record<string, "neutral" | "accent" | "success" | "warning"> = {
@@ -25,7 +37,7 @@ export default async function AdminFtProspectsPage() {
   const { data: prospects } = await supabase
     .from("bien_prospect")
     .select(
-      "id, type, adresse, disponibilite_souhaitee, created_at, proprietaire:proprietaire_id(id, nom, email, statut)",
+      "id, type, adresse, disponibilite_souhaitee, created_at, proprietaire:proprietaire_id(id, nom, email, telephone, statut, source)",
     )
     .order("created_at", { ascending: false })
     .limit(100)
@@ -48,7 +60,7 @@ export default async function AdminFtProspectsPage() {
       {!prospects || prospects.length === 0 ? (
         <p className="mt-6 text-sm text-fg-muted">
           Aucun prospect pour l&apos;instant. Ils apparaîtront ici dès qu&apos;un propriétaire
-          discute avec l&apos;agent sur la page /proprietaires.
+          demandera une estimation sur la page /proprietaires.
         </p>
       ) : (
         <ul className="mt-6 flex flex-col gap-3">
@@ -61,6 +73,11 @@ export default async function AdminFtProspectsPage() {
                       <p className="font-medium text-fg">{p.proprietaire?.nom ?? "Prospect"}</p>
                       <p className="text-sm text-fg-muted">
                         {p.type ?? "Type non précisé"} · {p.adresse ?? "Adresse non précisée"}
+                        {p.proprietaire?.telephone ? ` · ${p.proprietaire.telephone}` : ""}
+                      </p>
+                      <p className="text-xs text-fg-muted">
+                        {ORIGINE[p.proprietaire?.source ?? ""] ?? "Origine inconnue"} ·{" "}
+                        {new Date(p.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Paris" })}
                       </p>
                     </div>
                     <Badge variant={STATUT_VARIANT[p.proprietaire?.statut ?? "prospect"]}>
