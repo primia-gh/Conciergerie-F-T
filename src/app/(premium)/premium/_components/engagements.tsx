@@ -1,5 +1,5 @@
 import { HandHeart, ShieldCheck, Undo2 } from "lucide-react";
-import { Surtitre } from "./ornements";
+import { Surtitre } from "@/components/premium/ornements";
 
 /**
  * Remplace l'ancienne section « Ils nous font confiance », restée vide faute

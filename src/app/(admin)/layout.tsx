@@ -48,9 +48,16 @@ export default async function AdminSpaceLayout({ children }: { children: ReactNo
           >
             Agent F&amp;T
           </Link>
+          {/* La page de choix redirige un compte connecté vers son espace, sauf avec ?from=app. */}
+          <Link
+            href="/?from=app"
+            className="ml-auto shrink-0 whitespace-nowrap text-sm text-fg-muted hover:text-fg"
+          >
+            Voir le site
+          </Link>
         </div>
       </nav>
-      {children}
+      <main id="contenu">{children}</main>
     </div>
   );
 }

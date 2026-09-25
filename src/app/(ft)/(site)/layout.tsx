@@ -35,7 +35,7 @@ export default function FtSiteLayout({ children }: { children: React.ReactNode }
           </nav>
         </div>
       </header>
-      <main className="flex flex-1 flex-col">{children}</main>
+      <main id="contenu" className="flex flex-1 flex-col">{children}</main>
       <footer className="border-t border-border bg-bg-subtle">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-10 text-center sm:flex-row sm:justify-between sm:px-6 sm:text-left">
           <div className="flex items-center gap-3">

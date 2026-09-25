@@ -15,9 +15,16 @@ describe("isPublicPath", () => {
     }
   });
 
+  it("ouvre sans compte les étapes du mot de passe oublié et l'arrivée des liens e-mail", () => {
+    for (const chemin of ["/mot-de-passe-oublie", "/nouveau-mot-de-passe", "/auth/callback"]) {
+      expect(isPublicPath(chemin)).toBe(true);
+    }
+  });
+
   it("laisse les réseaux sociaux lire les images d'aperçu des deux accueils", () => {
     expect(isPublicPath("/opengraph-image-qoynq3")).toBe(true);
     expect(isPublicPath("/premium/opengraph-image-1iyv64")).toBe(true);
+    expect(isPublicPath("/location/opengraph-image-3k2x9a")).toBe(true);
   });
 
   it("ne s'étend pas aux adresses voisines", () => {

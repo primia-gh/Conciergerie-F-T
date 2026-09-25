@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Soleil } from "./ornements";
+import { Soleil } from "@/components/premium/ornements";
 
 /** Bandeau d'appel avant le pied de page, sur le bleu profond, sous un soleil Art déco. */
 export function CtaBanner({ dashboardHref }: { dashboardHref?: string | null }) {

@@ -74,7 +74,7 @@ déployé et utilisé. Décision du 2026-09-17 : **les deux coexistent sur le m�
 
 ## Où on en est
 
-Mis à jour le 2026-09-25. Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
+Mis à jour le 2026-09-25 (lot A). Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
 (étapes 1 et 2 de `docs/instructions-claude-code-2026-09.md`). On travaille désormais sur `master`.
 
 - **Étape 3a et refonte visuelle faites (2026-09-25)** : `/` = page de choix, `/premium` = accueil
@@ -93,18 +93,23 @@ Mis à jour le 2026-09-25. Branche `v2-assistant-gerant` **fusionnée dans `mast
 - **Compte admin de production** créé le 2026-09-24 par le Gérant (Supabase → Add user, puis rôle
   passé à `admin` en SQL, comme `seed-dev-accounts.sql`). Connexion et écrans `/admin/boite`,
   `/admin/fiches` vérifiés en ligne. Le compte admin utilisé avant n'existait que sur la base de dev.
-- **Manques constatés en ligne** : pas de page « mot de passe oublié », et le site ne traite pas les
-  liens reçus par e-mail (lien magique, réinitialisation) : Supabase les accepte mais personne n'est
-  connecté. À construire, surtout pour les clients Premium. Supprimer depuis Supabase un compte qui
-  a des demandes échoue (`request_status_history.changed_by` obligatoire) : aucune perte, mais la
-  suppression passe par le parcours du site.
+- **Lot A « fondations » fait (2026-09-25)** : mot de passe oublié (`/mot-de-passe-oublie`,
+  `/nouveau-mot-de-passe`), arrivée des liens e-mail (`/auth/callback` ; liens du tableau de bord
+  Supabase récupérés par `recuperation-session.tsx`), retour vers la page demandée après
+  connexion (`cheminInterneSur`), pages 404 et d'erreur, données structurées JSON-LD, lien
+  « Aller au contenu », « Voir le site » dans l'admin. Connexion et inscription en « Marine & or ».
+  **Limite** : sans SMTP personnalisé (Resend, lot F), Supabase n'envoie d'e-mails qu'aux membres
+  de l'équipe Supabase : un client ne reçoit ni confirmation d'inscription ni lien de
+  réinitialisation. Vérifier aussi dans Supabase (Authentication → URL Configuration) que
+  `https://conciergerie-f-t.vercel.app/**` est dans les Redirect URLs. Supprimer depuis Supabase un
+  compte qui a des demandes échoue (`request_status_history.changed_by` obligatoire).
 - **Attention, relance automatique** : la règle `relance_prospect_48h` est au niveau « Agit seul »
   en production. Rien ne part aujourd'hui (aucun prospect, chat coupé, pas de `RESEND_API_KEY`),
   mais activer le chat et Resend fera partir de vraies relances.
 - **Base de dev en pause** (limite de deux projets gratuits) : `.env.local` pointe encore vers elle,
   donc le serveur local ne peut pas lire de données. Solution à choisir avec le Gérant (voir
   `docs/instructions-claude-code-2026-09.md`). Ne jamais pointer le local vers la production.
-- **Construit et testé** (338 tests + audits SQL sur la base de dev) : boîte de réception
+- **Construit et testé** (342 tests + audits SQL sur la base de dev) : boîte de réception
   (`/admin/boite`), fiches et logements (`/admin/fiches`), assistant du Gérant, garde-fous, journal
   verrouillé, tests de sécurité. Le chat public de prospection est construit mais **désactivé**.
 - **Rien ne part automatiquement** : toutes les tâches de l'assistant sont au niveau « Propose ».

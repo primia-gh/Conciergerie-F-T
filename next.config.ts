@@ -15,8 +15,9 @@ const supabaseWsOrigin = supabaseOrigin.replace(/^http/, "ws");
 // <script src> same-origin légitimes, faute de mécanisme de propagation
 // automatique du nonce documenté et fonctionnel côté framework à ce jour).
 // `unsafe-inline` sur script-src laisse un vecteur XSS-via-injection-HTML
-// théorique, mais le code ne contient aucun `dangerouslySetInnerHTML` et React
-// échappe tout rendu par défaut — le risque résiduel est faible. Ce qui reste
+// théorique, mais le seul `dangerouslySetInnerHTML` du code sert au JSON-LD
+// (constantes, `<` échappé, voir donnees-structurees.tsx) et React échappe
+// tout le reste par défaut — le risque résiduel est faible. Ce qui reste
 // pleinement strict et à forte valeur : `connect-src` (limite les destinations
 // réseau à notre seule origine Supabase), `frame-ancestors 'none'` (anti-clickjacking),
 // `object-src none`, `base-uri 'self'`, et le blocage de scripts EXTERNES.

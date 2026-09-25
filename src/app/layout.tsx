@@ -47,6 +47,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Premier élément au clavier : saute directement au contenu principal (#contenu). */}
+        <a
+          href="#contenu"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-[#f4f1ea] focus:px-4 focus:py-3 focus:font-medium focus:text-[#0e1a31] focus:outline-2 focus:outline-offset-2 focus:outline-[#c9a24e]"
+        >
+          Aller au contenu
+        </a>
         <ToastContextProvider>
           {children}
           <Toaster />

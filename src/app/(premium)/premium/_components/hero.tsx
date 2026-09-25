@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
-import { PhotoCadree, Soleil, Surtitre } from "./ornements";
-import { PHOTOS } from "./photos";
+import { PhotoCadree, Soleil, Surtitre } from "@/components/premium/ornements";
+import { PHOTOS } from "@/components/premium/photos";
 
 // Garanties tirées des formules et de la FAQ, rien d'autre.
 const GARANTIES = ["Sans engagement", "Concierge dédié (VIP)", "Réponse prioritaire (Premium)"];

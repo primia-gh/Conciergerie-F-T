@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Politique de confidentialité" };
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
+    <main id="contenu" className="mx-auto max-w-3xl px-6 py-16">
       <p className="text-sm font-medium uppercase tracking-widest text-warning">
         Modèle — à faire valider par un juriste avant mise en production
       </p>
@@ -142,6 +142,6 @@ export default function PrivacyPolicyPage() {
           </p>
         </section>
       </div>
-    </div>
+    </main>
   );
 }

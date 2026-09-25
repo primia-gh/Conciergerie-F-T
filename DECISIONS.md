@@ -293,7 +293,7 @@ ivoire (`.theme-premium-clair`, or foncé #7A5812 pour rester lisible). Planches
 rangée « Premium — refonte Marine & or » du canevas. Contrastes du texte ≥ 4,5 partout.
 
 **Visuels** : sept photos d'ambiance libres de droits (licence Unsplash, crédits dans
-`(premium)/premium/_components/photos.ts`), téléchargées avec l'accord du Gérant et servies depuis
+`src/components/premium/photos.ts`), téléchargées avec l'accord du Gérant et servies depuis
 `public/premium/` : aucun domaine d'images extérieur à autoriser dans la CSP. Elles illustrent des
 univers, jamais un bien ou un partenaire réel. Aucune photo de banque d'images pour F&T : ses
 visuels seront de vraies photos des logements. Icônes Lucide en trait fin doré, soleil Art déco,

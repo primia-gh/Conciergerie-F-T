@@ -18,7 +18,7 @@ export default async function AccountPage() {
   const profile = await requireRole("client", "concierge", "admin", "partner");
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16">
+    <main id="contenu" className="mx-auto max-w-2xl px-6 py-16">
       <Link
         href={dashboardPathForRole(profile.role)}
         className="text-sm text-fg-muted hover:underline"
@@ -60,6 +60,6 @@ export default async function AccountPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 }

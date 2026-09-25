@@ -1,5 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Surtitre } from "./ornements";
+import { Surtitre } from "@/components/premium/ornements";
 
 const FAQ_ITEMS = [
   {

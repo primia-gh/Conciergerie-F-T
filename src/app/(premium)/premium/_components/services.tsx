@@ -9,7 +9,7 @@ import {
   ShoppingBag,
   Star,
 } from "lucide-react";
-import { Surtitre } from "./ornements";
+import { Surtitre } from "@/components/premium/ornements";
 
 const SERVICES = [
   { icon: UtensilsCrossed, label: "Restaurant" },

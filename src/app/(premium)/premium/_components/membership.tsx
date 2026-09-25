@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Surtitre } from "./ornements";
+import { Surtitre } from "@/components/premium/ornements";
 
 /**
  * Reflète les plans définis dans src/server/db/seed.sql (Phase M1).

@@ -14,6 +14,9 @@ const PUBLIC_PATHS = [
   "/proprietaires", // chat de prospection F&T (lot L1), public par nature
   "/location", // accueil du site public F&T (étape 3a)
   "/premium", // accueil du site public Premium, anciennement "/" (étape 3a)
+  "/mot-de-passe-oublie", // demande d'un lien de réinitialisation (lot A)
+  "/nouveau-mot-de-passe", // la page vérifie elle-même la session ouverte par le lien
+  "/auth/callback", // arrivée des liens reçus par e-mail (confirmation, réinitialisation)
 ];
 
 // Next.js suffixe les fichiers de convention (opengraph-image, icon...) d'un
@@ -23,7 +26,8 @@ const PUBLIC_PATHS = [
 // La barre finale évite d'ouvrir par erreur `/guides…` ou `/proprietaire-…`.
 const PUBLIC_PATH_PREFIXES = [
   "/opengraph-image",
-  "/premium/opengraph-image", // image d'aperçu de /premium, lue par les réseaux sociaux sans compte
+  "/premium/opengraph-image", // images d'aperçu des accueils, lues par les réseaux sociaux sans compte
+  "/location/opengraph-image",
   "/icon",
   "/apple-icon",
   "/guide/",

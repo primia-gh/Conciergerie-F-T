@@ -1,5 +1,5 @@
-import { PhotoCadree, Surtitre } from "./ornements";
-import { PHOTOS } from "./photos";
+import { PhotoCadree, Surtitre } from "@/components/premium/ornements";
+import { PHOTOS } from "@/components/premium/photos";
 
 /**
  * Vitrine illustrative : des univers, pas un catalogue. Les photos sont des

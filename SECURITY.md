@@ -79,8 +79,9 @@ recommandation Next.js officielle) bloque **tous** les scripts Next.js, y compri
 same-origin légitimes — le mécanisme de propagation automatique du nonce vers les scripts injectés
 par le framework (streaming RSC) n'a pas pu être mis en fonctionnement de façon fiable dans le
 temps imparti à cette phase. `unsafe-inline` sur `script-src` laisse un vecteur XSS-via-injection
-HTML théorique, mais le risque résiduel est faible : le code ne contient aucun
-`dangerouslySetInnerHTML`, et React échappe tout rendu par défaut. **Item de durcissement identifié
+HTML théorique, mais le risque résiduel est faible : le seul `dangerouslySetInnerHTML` du code sert
+aux données structurées JSON-LD (`src/components/site/donnees-structurees.tsx`), des constantes
+écrites dans le code, jamais une saisie, avec `<` échappé ; React échappe tout le reste par défaut. **Item de durcissement identifié
 pour un futur cycle** : implémenter la CSP à nonce une fois le mécanisme Next.js correctement
 maîtrisé, ou après migration vers une version de Next.js documentant plus précisément ce point.
 

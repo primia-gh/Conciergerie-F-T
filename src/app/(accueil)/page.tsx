@@ -7,6 +7,8 @@ import { bodoni, jost, karla } from "@/app/fonts";
 import { getCurrentProfile } from "@/server/auth/session";
 import { dashboardPathForRole } from "@/server/auth/guards";
 import { cn } from "@/lib/utils";
+import { RecuperationSession } from "@/components/site/recuperation-session";
+import { DONNEES_SITE, DonneesStructurees } from "@/components/site/donnees-structurees";
 
 const description =
   "Conciergerie F&T, location courte durée, et Conciergerie Premium, conciergerie privée : deux activités, un même site.";
@@ -15,6 +17,7 @@ export const metadata: Metadata = {
   title: { absolute: "Conciergerie F&T · Conciergerie Premium" },
   description,
   openGraph: { title: "Conciergerie F&T · Conciergerie Premium", description, type: "website" },
+  alternates: { canonical: "/" },
 };
 
 // Chaque moitié s'élargit au survol ou au focus clavier (maquette), sauf si le
@@ -33,15 +36,23 @@ export default async function PageDeChoix({ searchParams }: PageProps<"/">) {
   // manifest.ts) va directement à son espace. Exception : ?from=app montre la
   // page malgré tout.
   const params = await searchParams;
+  // Filet de sécurité : si Supabase renvoie un lien e-mail vers l'adresse du site
+  // (adresse de retour non autorisée dans ses réglages), on le transmet quand même.
+  if (typeof params.code === "string") {
+    redirect(`/auth/callback?code=${encodeURIComponent(params.code)}`);
+  }
   const profile = await getCurrentProfile();
   if (profile && params.from !== "app") {
     redirect(dashboardPathForRole(profile.role));
   }
 
   return (
-    <div
+    <main
+      id="contenu"
       className={`${karla.variable} ${bodoni.variable} ${jost.variable} relative flex min-h-dvh flex-1 flex-col md:flex-row`}
     >
+      <DonneesStructurees donnees={DONNEES_SITE} />
+      <RecuperationSession />
       <h1 className="sr-only">Conciergerie F&amp;T et Conciergerie Premium</h1>
 
       <p className="bg-[#121412] py-3 text-center text-xs tracking-[0.18em] text-[#d8d4c8] md:pointer-events-none md:absolute md:top-10 md:left-1/2 md:z-10 md:-translate-x-1/2 md:rounded-full md:px-5 md:py-2.5">
@@ -103,6 +114,6 @@ export default async function PageDeChoix({ searchParams }: PageProps<"/">) {
           Se connecter
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

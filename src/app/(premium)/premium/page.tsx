@@ -11,6 +11,7 @@ import { Engagements } from "./_components/engagements";
 import { Faq } from "./_components/faq";
 import { CtaBanner } from "./_components/cta-banner";
 import { MarketingFooter } from "./_components/footer";
+import { DONNEES_PREMIUM, DonneesStructurees } from "@/components/site/donnees-structurees";
 
 const description =
   "Conciergerie privée : décrivez votre besoin, un concierge dédié recherche et vous propose des solutions prêtes à valider. Restaurants, voyages, événements et plus.";
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
     description,
     type: "website",
   },
+  alternates: { canonical: "/premium" },
 };
 
 export default async function PremiumPage() {
@@ -36,7 +38,8 @@ export default async function PremiumPage() {
   return (
     <div className="flex flex-1 flex-col">
       <MarketingHeader dashboardHref={dashboardHref} />
-      <main>
+      <DonneesStructurees donnees={DONNEES_PREMIUM} />
+      <main id="contenu">
         <Hero dashboardHref={dashboardHref} />
         <HowItWorks />
         <Services />

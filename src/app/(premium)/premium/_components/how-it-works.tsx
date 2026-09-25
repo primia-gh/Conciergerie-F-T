@@ -1,5 +1,5 @@
 import { CheckCircle2, ListChecks, MessageSquarePlus, Search } from "lucide-react";
-import { Surtitre } from "./ornements";
+import { Surtitre } from "@/components/premium/ornements";
 
 const STEPS = [
   {
