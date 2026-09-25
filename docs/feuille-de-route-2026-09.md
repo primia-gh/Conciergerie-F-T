@@ -78,5 +78,6 @@
 ## Ce qui reste à décider
 
 - Option de base de données (A, B ou C).
-- Palette Premium.
-- Page d'accueil par défaut : F&T ou page de choix.
+- ~~Palette Premium~~ : **Noir & or** (Gérant, 2026-09-25).
+- ~~Page d'accueil par défaut~~ : **page de choix** (Gérant, 2026-09-25).
+- Thème des espaces connectés : garder le sombre actuel ou un thème clair commun (« à voir »).

@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Conciergerie",
     description: "Service de conciergerie privée haut de gamme, sur demande.",
     // "/" redirige déjà vers le bon dashboard pour un utilisateur connecté
-    // (voir src/app/(marketing)/page.tsx) — un seul point d'entrée pour les 4 rôles.
+    // (voir src/app/(accueil)/page.tsx) — un seul point d'entrée pour les 4 rôles.
     start_url: "/",
     display: "standalone",
     background_color: "#14120e",

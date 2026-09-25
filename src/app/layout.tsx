@@ -18,6 +18,8 @@ const fraunces = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
   axes: ["opsz"],
+  // L'italique sert aux mots mis en valeur des titres F&T (maquette « Lin & forêt »).
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {

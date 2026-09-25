@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/server/auth/session";
 import { dashboardPathForRole } from "@/server/auth/guards";
 import { MarketingHeader } from "./_components/header";
@@ -26,20 +25,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function MarketingHomePage({ searchParams }: PageProps<"/">) {
-  // Un utilisateur déjà connecté qui atterrit sur "/" (ex. raccourci PWA,
-  // voir manifest.ts) est envoyé directement à son espace plutôt que de
-  // revoir la page marketing. Exception : le lien "Voir le site" des
-  // dashboards ajoute ?from=app pour montrer la page marketing malgré tout.
-  const params = await searchParams;
+export default async function PremiumPage() {
+  // Accueil Premium, déplacé de "/" vers "/premium" (étape 3a) : la redirection
+  // d'un utilisateur connecté vers son espace est restée sur "/" (page de
+  // choix). Ici, un visiteur connecté voit la page, avec « Mon espace » à la
+  // place de « Se connecter » pour ne pas croire à une déconnexion.
   const profile = await getCurrentProfile();
-  if (profile && params.from !== "app") {
-    redirect(dashboardPathForRole(profile.role));
-  }
-
-  // Un visiteur qui arrive ici via ?from=app est toujours connecté — la page
-  // le montre plutôt que de laisser "Se connecter" donner l'impression
-  // trompeuse d'une déconnexion (voir ROADMAP.md).
   const dashboardHref = profile ? dashboardPathForRole(profile.role) : null;
 
   return (

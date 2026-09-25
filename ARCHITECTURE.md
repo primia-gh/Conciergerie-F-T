@@ -178,7 +178,9 @@ Chaque action métier émet un événement interne (`REQUEST_CREATED`, `PROPOSAL
 
 ```
 /app
-  /(marketing)          → landing page publique (SEO, SSR/ISR)
+  /(accueil)            → "/" : page de choix entre les deux activités (étape 3a, 2026-09-25)
+  /(ft)                  → pages publiques F&T (thème F&T) : /location, /proprietaires, guide, portail
+  /(premium)             → "/premium" : accueil Conciergerie Premium (anciennement "/", dossier (marketing))
   /(auth)                → login, signup, reset password
   /(client)              → espace client
   /(concierge)           → espace concierge

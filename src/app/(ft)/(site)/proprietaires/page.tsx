@@ -17,7 +17,7 @@ export default function ProprietairesPage() {
         <span className="text-sm font-medium tracking-wide text-accent uppercase">
           Conciergerie F&amp;T
         </span>
-        <h1 className="text-3xl font-semibold text-fg sm:text-4xl">
+        <h1 className="font-display text-3xl font-normal text-fg sm:text-5xl">
           Votre bien géré de bout en bout, sans y passer vos soirées.
         </h1>
         <p className="max-w-xl text-fg-muted">

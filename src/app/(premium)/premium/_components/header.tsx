@@ -20,8 +20,8 @@ export function MarketingHeader({ dashboardHref }: { dashboardHref?: string | nu
     <header className="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
         <Link
-          href="/"
-          className="shrink-0 font-display text-lg font-medium text-fg"
+          href="/premium"
+          className="shrink-0 font-display text-xl font-medium text-fg"
           onClick={() => setMenuOuvert(false)}
         >
           Conciergerie Premium

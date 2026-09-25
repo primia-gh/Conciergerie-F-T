@@ -35,7 +35,7 @@ export default async function NewRequestPage() {
             <Link href="/client/dashboard">Retour au dashboard</Link>
           </Button>
           <Button asChild>
-            <Link href="/#tarifs">Voir les forfaits</Link>
+            <Link href="/premium#tarifs">Voir les forfaits</Link>
           </Button>
         </div>
       </div>

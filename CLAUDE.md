@@ -74,8 +74,14 @@ déployé et utilisé. Décision du 2026-09-17 : **les deux coexistent sur le m�
 
 ## Où on en est
 
-Mis à jour le 2026-09-24. Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
-(étapes 1 et 2 de `docs/instructions-claude-code-2026-09.md`).
+Mis à jour le 2026-09-25. Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
+(étapes 1 et 2 de `docs/instructions-claude-code-2026-09.md`). On travaille désormais sur `master`.
+
+- **Étape 3a faite (2026-09-25)** : `/` = page de choix, `/premium` = ancien accueil Premium en
+  « Noir & or », `/location` = première page F&T, sélecteur en haut des pages publiques, un thème
+  par activité (`globals.css`, `.theme-ft` / `.theme-premium`). Décisions : `DECISIONS.md`.
+  **Reste 3b** : la page F&T complète de la maquette attend du vrai contenu du Gérant (photos,
+  avis, chiffres, zones ; la maquette dit « plusieurs régions », la fiche offre « Grand Est »).
 
 - **En production** (vérifié le 2026-09-24) : le site en ligne utilise `concierge-app-prod`
   (migrations 0000 à 0026, audits rejoués). Variables Vercel (Production seulement) :
@@ -97,7 +103,7 @@ Mis à jour le 2026-09-24. Branche `v2-assistant-gerant` **fusionnée dans `mast
 - **Base de dev en pause** (limite de deux projets gratuits) : `.env.local` pointe encore vers elle,
   donc le serveur local ne peut pas lire de données. Solution à choisir avec le Gérant (voir
   `docs/instructions-claude-code-2026-09.md`). Ne jamais pointer le local vers la production.
-- **Construit et testé** (337 tests + audits SQL sur la base de dev) : boîte de réception
+- **Construit et testé** (338 tests + audits SQL sur la base de dev) : boîte de réception
   (`/admin/boite`), fiches et logements (`/admin/fiches`), assistant du Gérant, garde-fous, journal
   verrouillé, tests de sécurité. Le chat public de prospection est construit mais **désactivé**.
 - **Rien ne part automatiquement** : toutes les tâches de l'assistant sont au niveau « Propose ».

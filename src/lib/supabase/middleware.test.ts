@@ -10,9 +10,14 @@ describe("isPublicPath", () => {
   });
 
   it("garde publiques les pages déjà ouvertes à tous", () => {
-    for (const chemin of ["/", "/login", "/signup", "/proprietaires", "/confidentialite"]) {
+    for (const chemin of ["/", "/location", "/premium", "/login", "/signup", "/proprietaires", "/confidentialite"]) {
       expect(isPublicPath(chemin)).toBe(true);
     }
+  });
+
+  it("laisse les réseaux sociaux lire les images d'aperçu des deux accueils", () => {
+    expect(isPublicPath("/opengraph-image-qoynq3")).toBe(true);
+    expect(isPublicPath("/premium/opengraph-image-1iyv64")).toBe(true);
   });
 
   it("ne s'étend pas aux adresses voisines", () => {

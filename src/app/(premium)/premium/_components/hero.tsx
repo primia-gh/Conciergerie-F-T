@@ -35,7 +35,7 @@ export function Hero({ dashboardHref }: { dashboardHref?: string | null }) {
 
         {/* Panneau éditorial en attente de la photographie de marque (voir DECISIONS.md) */}
         <div className="relative hidden aspect-[4/5] w-full max-w-sm shrink-0 overflow-hidden rounded-sm bg-gradient-to-br from-bg-subtle via-border/40 to-bg-subtle lg:block">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(201,162,92,0.12),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(161,98,7,0.10),transparent_55%)]" />
           <div className="absolute left-8 top-8 h-10 w-10 rounded-full border border-accent/50" />
           <p className="absolute bottom-8 left-8 right-8 text-xs tracking-wide text-fg-faint">
             PHOTOGRAPHIE ÉDITORIALE — À VENIR

@@ -262,3 +262,21 @@ contournable sur Vercel (`SECURITY.md` §6).
 **Décision** : `CHAT_PROSPECTION_ACTIF` doit valoir exactement `true`. Le garde est dans l'action
 serveur (appelable directement, sans passer par l'écran), pas seulement sur la page. **Conséquence** :
 la page est prérendue, changer la variable exige un nouveau déploiement.
+
+## Un site, deux activités : page de choix et un thème par activité (2026-09-25)
+
+**Contexte** : F&T (location courte durée) et Premium (conciergerie privée) partagent le même site
+(décision du 2026-09-17). Maquettes : canevas « Conciergerie F&T — Accueil ».
+
+**Décision du Gérant** : `/` est une page de choix (une moitié par activité) ; Premium passe à
+`/premium`, F&T vit sous `/location`. Premium adopte la palette « Noir & or » (Cormorant +
+Montserrat) et non « Marine & or », proposée dans les consignes du 2026-09-24. Aucun prix n'est
+affiché sur la page de choix tant que les tarifs Premium restent provisoires. Le thème sombre
+charbon + laiton n'est plus celui des pages publiques : il reste, pour l'instant, celui des espaces
+connectés et de la connexion (choix d'un thème commun « à voir »).
+
+**Mise en œuvre** : une seule liste de jetons de couleur, redéfinie par les classes `.theme-ft` et
+`.theme-premium` posées par les layouts `(ft)` et `(premium)` (`globals.css`). Le vert forêt, jadis
+réservé au bandeau final de Premium, devient la couleur de marque de F&T ; ce bandeau passe sur
+le fond encre de « Noir & or ». Contenu : uniquement des textes de la maquette ou déjà validés ; le
+parcours voyageur (« Je cherche un séjour ») reste caché tant que la réservation n'existe pas.

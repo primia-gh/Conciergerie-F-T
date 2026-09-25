@@ -122,7 +122,7 @@ export default async function ClientDashboardPage() {
         </div>
         <div className="flex items-center gap-4">
           <NotificationsBell notifications={notifications ?? []} currentPath="/client/dashboard" />
-          <Link href="/?from=app" className="text-sm text-fg-muted hover:underline">
+          <Link href="/premium" className="text-sm text-fg-muted hover:underline">
             Voir le site
           </Link>
           <Link href="/account" className="text-sm text-fg-muted hover:underline">
@@ -138,7 +138,7 @@ export default async function ClientDashboardPage() {
       {quota && !quota.canCreateRequest && (
         <p className="mt-2 text-sm text-fg-muted">
           Limite du forfait {quota.planName} atteinte —{" "}
-          <Link href="/#tarifs" className="font-medium text-accent hover:underline">
+          <Link href="/premium#tarifs" className="font-medium text-accent hover:underline">
             passer à un forfait supérieur
           </Link>
         </p>

@@ -12,6 +12,8 @@ const PUBLIC_PATHS = [
   "/sitemap.xml",
   "/manifest.webmanifest",
   "/proprietaires", // chat de prospection F&T (lot L1), public par nature
+  "/location", // accueil du site public F&T (étape 3a)
+  "/premium", // accueil du site public Premium, anciennement "/" (étape 3a)
 ];
 
 // Next.js suffixe les fichiers de convention (opengraph-image, icon...) d'un
@@ -19,7 +21,14 @@ const PUBLIC_PATHS = [
 // `/guide/` et `/proprietaire/` : liens envoyés au voyageur et au propriétaire,
 // ouverts sans compte (identifiant UUID non devinable, contrôle dans la page).
 // La barre finale évite d'ouvrir par erreur `/guides…` ou `/proprietaire-…`.
-const PUBLIC_PATH_PREFIXES = ["/opengraph-image", "/icon", "/apple-icon", "/guide/", "/proprietaire/"];
+const PUBLIC_PATH_PREFIXES = [
+  "/opengraph-image",
+  "/premium/opengraph-image", // image d'aperçu de /premium, lue par les réseaux sociaux sans compte
+  "/icon",
+  "/apple-icon",
+  "/guide/",
+  "/proprietaire/",
+];
 
 export function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.includes(pathname) || PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p));
