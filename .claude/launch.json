@@ -12,6 +12,12 @@
       "port": 3000
     },
     {
+      "name": "concierge-prod-local",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start"],
+      "port": 3000
+    },
+    {
       "name": "concierge-dev-certificats",
       "runtimeExecutable": "node",
       "runtimeArgs": ["--use-system-ca", "node_modules/next/dist/bin/next", "dev"],

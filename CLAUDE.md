@@ -118,7 +118,10 @@ Mis à jour le 2026-09-25. Branche `v2-assistant-gerant` **fusionnée dans `mast
   (seulement des données de test, sur la base de dev).
 - **Accès de l'assistant** : l'outil Vercel connecté ne peut pas lire les réglages du projet
   (403) ; on peut en revanche vérifier la base utilisée par le site en ligne sans aucun secret,
-  dans l'en-tête public `Content-Security-Policy` (`curl -I`).
+  dans l'en-tête public `Content-Security-Policy` (`curl -I`). Le navigateur d'aperçu de
+  l'application bloque les fichiers `/_next/static` du site en ligne (page affichée sans styles) :
+  pour voir le rendu de production, lancer `npm run build` puis la configuration
+  `concierge-prod-local` (`.claude/launch.json`).
 - **Décisions ouvertes** : voir `docs/cahier-des-charges-v2.md` (questions ouvertes). Le logiciel
   de réservation reste non choisi et n'est pas nécessaire aujourd'hui.
 
