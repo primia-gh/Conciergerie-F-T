@@ -5,11 +5,11 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
-  { href: "#comment-ca-marche", label: "Comment ça marche" },
-  { href: "#services", label: "Services" },
-  { href: "#selection", label: "Sélection" },
-  { href: "#tarifs", label: "Formules" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/premium#comment-ca-marche", label: "Comment ça marche" },
+  { href: "/premium#services", label: "Services" },
+  { href: "/premium#selection", label: "Sélection" },
+  { href: "/premium#tarifs", label: "Formules" },
+  { href: "/premium#faq", label: "FAQ" },
 ];
 
 const lienNav =

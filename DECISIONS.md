@@ -343,3 +343,29 @@ suivi, les messages et les propositions restent l'affaire du concierge ; le Gér
 corrigé était perdu). Les statuts s'affichent en français (`components/espace/libelles.ts`, testé
 contre les énumérations de la base) ; côté équipe, « En attente de votre réponse » devient « En
 attente du client ».
+
+## Formules Premium : comparaison, conseil et activation à la main (lot D, 2026-09-26)
+
+**Décisions du Gérant** : les tarifs restant provisoires, les formules payantes affichent « Sur
+demande » (Free : « Gratuit ») ; aucun délai de réponse chiffré (« sous 48 h », « sous 4 h » retirés,
+« réponse prioritaire » gardée) ; le questionnaire « Quelle formule pour moi ? » conseille sans
+rien enregistrer ; en attendant le paiement en ligne (lot F), le client demande une formule et le
+Gérant l'active à la main, en facturant hors du site.
+
+**Mise en œuvre** : `src/lib/forfaits.ts` est la seule description des formules (page publique,
+comparaison, questionnaire, espaces client et Gérant). Un test vérifie qu'elle reprend les limites
+et le concierge dédié de la table `plans` (`seed.sql`) et qu'aucun prix ni délai chiffré n'y
+figure. « Historique complet » (Premium) et « Réponse dans l'ordre d'arrivée » ne sont pas repris :
+rien ne les distingue réellement entre formules.
+
+**Demande de formule sans migration** : la demande en cours est rangée dans
+`client_profiles.preferences.demande_forfait` (colonne jsonb inutilisée jusque-là). Le client ne
+modifie que sa ligne (RLS `client_profiles_update_own`) et ne peut rien activer : l'abonnement
+(`subscriptions`) reste écrit par l'admin seul. Activer une formule crée un abonnement, clôt le
+précédent (`cancelled`) et retire la demande ; repasser en Free supprime simplement le
+rattachement (même règle que `quota.ts`). Chaque geste (demande, annulation, activation, clôture)
+écrit une ligne de journal `activite = premium`. Une table dédiée pourra remplacer ce rangement
+quand le paiement en ligne arrivera.
+
+**À trancher plus tard** : la « réponse prioritaire » des formules payantes est affichée (FAQ,
+accueil, comparaison) mais aucun code ne l'applique aux demandes.

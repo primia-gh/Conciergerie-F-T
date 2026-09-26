@@ -78,7 +78,10 @@ export function TableauDeBord({ d }: { d: DonneesTableauDeBord }) {
           </Link>
           {limiteAtteinte && d.forfait && (
             <p className="text-sm text-fg-muted">
-              Limite du forfait {d.forfait.nom} atteinte ce mois-ci.
+              Limite de la formule {d.forfait.nom} atteinte ce mois-ci.{" "}
+              <Link href="/client/forfait" className="font-medium text-accent hover:underline">
+                Changer de formule
+              </Link>
             </p>
           )}
         </div>
@@ -271,11 +274,20 @@ function CarteForfait({ forfait: f }: { forfait: Forfait }) {
   return (
     <section aria-labelledby="titre-forfait" className="rounded-lg border border-border bg-surface p-6">
       <h2 id="titre-forfait" className={cn(surtitre, "text-fg-muted")}>
-        Votre forfait
+        Votre formule
       </h2>
       <p className="mt-3 font-display text-3xl text-fg">{f.nom}</p>
       {f.limite === null ? (
-        <p className="mt-2 text-sm text-fg-muted">Demandes illimitées.</p>
+        <>
+          <p className="mt-2 text-sm text-fg-muted">Demandes illimitées.</p>
+          <Link
+            href="/client/forfait"
+            className="group mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-accent"
+          >
+            Ma formule
+            <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
+          </Link>
+        </>
       ) : (
         <>
           <p className="mt-2 text-sm text-fg-muted">
@@ -287,11 +299,14 @@ function CarteForfait({ forfait: f }: { forfait: Forfait }) {
               style={{ width: `${Math.round(part * 100)}%` }}
             />
           </div>
+          {f.peutCreer && f.limite - f.utilisees === 1 && (
+            <p className="mt-2 text-xs text-warning">Plus qu&apos;une demande possible ce mois-ci.</p>
+          )}
           <Link
-            href="/premium#tarifs"
+            href="/client/forfait"
             className="group mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-accent"
           >
-            {f.peutCreer ? "Voir les forfaits" : "Passer à un forfait supérieur"}
+            {f.peutCreer ? "Voir les formules" : "Passer à une formule supérieure"}
             <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
           </Link>
         </>

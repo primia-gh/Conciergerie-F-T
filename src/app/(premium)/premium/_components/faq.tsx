@@ -20,6 +20,12 @@ const FAQ_ITEMS = [
       "Le paiement en ligne n'est pas encore ouvert. Il passera par Stripe, un prestataire de paiement sécurisé : aucune donnée bancaire ne sera stockée sur nos serveurs.",
   },
   {
+    // Lot D : activation à la main par le Gérant en attendant le paiement en ligne.
+    question: "Comment changer de formule ?",
+    answer:
+      "Depuis votre espace, ouvrez « Ma formule » et choisissez « Demander cette formule ». Votre demande nous est transmise : nous revenons vers vous pour les modalités, puis nous l'activons.",
+  },
+  {
     question: "Puis-je annuler mon abonnement à tout moment ?",
     answer: "Oui, sans engagement. La résiliation prend effet à la fin de la période en cours.",
   },

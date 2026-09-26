@@ -14,6 +14,8 @@ const PUBLIC_PATHS = [
   "/proprietaires", // chat de prospection F&T (lot L1), public par nature
   "/location", // accueil du site public F&T (étape 3a)
   "/premium", // accueil du site public Premium, anciennement "/" (étape 3a)
+  "/premium/forfaits", // comparaison détaillée des forfaits (lot D)
+  "/premium/conseil", // questionnaire « Quel forfait pour moi ? » (lot D)
   "/mot-de-passe-oublie", // demande d'un lien de réinitialisation (lot A)
   "/nouveau-mot-de-passe", // la page vérifie elle-même la session ouverte par le lien
   "/auth/callback", // arrivée des liens reçus par e-mail (confirmation, réinitialisation)

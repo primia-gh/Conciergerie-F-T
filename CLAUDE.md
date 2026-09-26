@@ -74,7 +74,7 @@ déployé et utilisé. Décision du 2026-09-17 : **les deux coexistent sur le m�
 
 ## Où on en est
 
-Mis à jour le 2026-09-26 (lots A, B, C1 et C2). Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
+Mis à jour le 2026-09-26 (lots A, B, C1, C2 et D). Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
 (étapes 1 et 2 de `docs/instructions-claude-code-2026-09.md`). On travaille désormais sur `master`.
 
 - **Étape 3a et refonte visuelle faites (2026-09-25)** : `/` = page de choix, `/premium` = accueil
@@ -104,6 +104,16 @@ Mis à jour le 2026-09-26 (lots A, B, C1 et C2). Branche `v2-assistant-gerant` *
   Paris (`src/lib/dates.ts`). Polices rangées par activité + `cssChunking: "graph"` : chaque page
   ne précharge que les siennes. **Vérifié** sur une page d'aperçu à données fictives (base de dev
   en pause), jamais avec un vrai compte client : à essayer en ligne.
+- **Lot D « formules Premium » fait (2026-09-26)** : décisions du Gérant : prix « sur demande »
+  (Free « Gratuit »), aucun délai chiffré, questionnaire qui conseille sans rien enregistrer,
+  activation à la main en attendant le paiement en ligne. Une seule source : `src/lib/forfaits.ts`
+  (testée contre `seed.sql`). Pages publiques `/premium/forfaits` (comparaison) et
+  `/premium/conseil` (3 questions). Espace client « Ma formule » (`/client/forfait`, demande en un
+  clic, annulable) et écran « limite atteinte » qui propose la formule au-dessus. Espace du Gérant
+  « Formules » (`/admin/forfaits`) : activer, clore, changer ; compteur dans « À traiter ». La
+  demande en cours est rangée dans `client_profiles.preferences.demande_forfait` (aucune
+  migration). **À savoir** : la « réponse prioritaire » promise aux formules payantes n'est
+  appliquée nulle part dans le code (les demandes ne reçoivent pas de priorité selon la formule).
 - **Lot C2 « espaces de l'équipe » fait (2026-09-26)** : espace concierge refait (tableau de bord
   « à prendre / en cours », demande en deux colonnes, éditeur de proposition qui montre ce que verra
   le client, envoi et retrait d'option confirmés). Espace du Gérant : tableau de bord des deux
@@ -136,7 +146,7 @@ Mis à jour le 2026-09-26 (lots A, B, C1 et C2). Branche `v2-assistant-gerant` *
 - **Base de dev en pause** (limite de deux projets gratuits) : `.env.local` pointe encore vers elle,
   donc le serveur local ne peut pas lire de données. Solution à choisir avec le Gérant (voir
   `docs/instructions-claude-code-2026-09.md`). Ne jamais pointer le local vers la production.
-- **Construit et testé** (373 tests + audits SQL sur la base de dev) : boîte de réception
+- **Construit et testé** (392 tests + audits SQL sur la base de dev) : boîte de réception
   (`/admin/boite`), fiches et logements (`/admin/fiches`), assistant du Gérant, garde-fous, journal
   verrouillé, tests de sécurité. Le chat public de prospection est construit mais **désactivé**.
 - **Rien ne part automatiquement** : toutes les tâches de l'assistant sont au niveau « Propose ».

@@ -1,9 +1,9 @@
 const LIENS = [
-  { href: "#comment-ca-marche", label: "Comment ça marche" },
-  { href: "#services", label: "Services" },
-  { href: "#selection", label: "Sélection" },
-  { href: "#tarifs", label: "Formules" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/premium#comment-ca-marche", label: "Comment ça marche" },
+  { href: "/premium#services", label: "Services" },
+  { href: "/premium#selection", label: "Sélection" },
+  { href: "/premium#tarifs", label: "Formules" },
+  { href: "/premium#faq", label: "FAQ" },
   { href: "/confidentialite", label: "Confidentialité" },
 ];
 // Pages légales à venir (étape 4) : affichées sans lien tant qu'elles n'existent pas.

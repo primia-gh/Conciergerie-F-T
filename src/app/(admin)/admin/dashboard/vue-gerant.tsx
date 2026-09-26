@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Building2, FileEdit, Inbox, UserPlus } from "lucide-react";
+import { AlertTriangle, ArrowRight, BadgeCheck, Building2, FileEdit, Inbox, UserPlus } from "lucide-react";
 import { HorizontalBarChart } from "@/components/features/horizontal-bar-chart";
 import { EnTetePage, PAGE, TitreSection } from "@/components/espace/en-tete";
 import { NIVEAU_AUTONOMIE, libelleTache } from "@/components/espace/libelles";
@@ -14,6 +14,7 @@ export type DonneesGerant = {
     brouillons: number;
     prospects: number;
     demandesSansConcierge: number;
+    formulesDemandees: number;
   };
   /** Tâches de l'assistant qui ne sont pas au niveau « Propose ». */
   reglesAutonomes: { tache: string; niveau: string }[];
@@ -90,7 +91,7 @@ function Chiffre({ libelle, valeur, note }: { libelle: string; valeur: string; n
 /** Tableau de bord du Gérant, pour ses deux activités (présentation seule). */
 export function VueGerant({ d }: { d: DonneesGerant }) {
   const t = d.aTraiter;
-  const total = t.escalades + t.brouillons + t.prospects + t.demandesSansConcierge;
+  const total = t.escalades + t.brouillons + t.prospects + t.demandesSansConcierge + t.formulesDemandees;
 
   return (
     <div className={PAGE.large}>
@@ -126,7 +127,7 @@ export function VueGerant({ d }: { d: DonneesGerant }) {
 
       <section aria-labelledby="a-traiter" className="mt-10">
         <TitreSection id="a-traiter">À traiter</TitreSection>
-        <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-5">
           <CarteATraiter
             href="/admin/boite"
             icone={Inbox}
@@ -155,6 +156,13 @@ export function VueGerant({ d }: { d: DonneesGerant }) {
             valeur={t.demandesSansConcierge}
             libelle="Demandes sans concierge"
             detail="Premium"
+          />
+          <CarteATraiter
+            href="/admin/forfaits"
+            icone={BadgeCheck}
+            valeur={t.formulesDemandees}
+            libelle="Formules à activer"
+            detail="Premium · demandes des clients"
           />
         </div>
       </section>

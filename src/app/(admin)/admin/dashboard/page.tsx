@@ -18,6 +18,7 @@ export default async function AdminDashboardPage() {
     { count: prospects },
     { count: prospectsTotal },
     { count: demandesSansConcierge },
+    { count: formulesDemandees },
     { data: reglesAutonomes },
     { data: logements },
     { count: openRequests },
@@ -44,6 +45,8 @@ export default async function AdminDashboardPage() {
     supabase.from("bien_prospect").select("id", { count: "exact", head: true }),
     // Premium
     supabase.from("requests").select("id", { count: "exact", head: true }).eq("status", "NEW").is("concierge_id", null),
+    // Demandes de changement de formule en attente (voir server/subscriptions/actions.ts).
+    supabase.from("client_profiles").select("profile_id", { count: "exact", head: true }).not("preferences->demande_forfait", "is", null),
     // Tâches de l'assistant qui peuvent agir sans clic du Gérant (celles de /admin/ft/regles).
     supabase
       .from("regle")
@@ -114,6 +117,7 @@ export default async function AdminDashboardPage() {
           brouillons: brouillons ?? 0,
           prospects: prospects ?? 0,
           demandesSansConcierge: demandesSansConcierge ?? 0,
+          formulesDemandees: formulesDemandees ?? 0,
         },
         reglesAutonomes: (reglesAutonomes ?? []).map((r) => ({ tache: r.tache, niveau: r.niveau_autonomie })),
         ft: {

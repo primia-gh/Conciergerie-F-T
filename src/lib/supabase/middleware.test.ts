@@ -15,6 +15,14 @@ describe("isPublicPath", () => {
     }
   });
 
+  it("ouvre sans compte la comparaison des forfaits et le questionnaire Premium, et rien de plus", () => {
+    expect(isPublicPath("/premium/forfaits")).toBe(true);
+    expect(isPublicPath("/premium/conseil")).toBe(true);
+    expect(isPublicPath("/premium/forfaits/admin")).toBe(false);
+    expect(isPublicPath("/client/forfait")).toBe(false);
+    expect(isPublicPath("/admin/forfaits")).toBe(false);
+  });
+
   it("ouvre sans compte les étapes du mot de passe oublié et l'arrivée des liens e-mail", () => {
     for (const chemin of ["/mot-de-passe-oublie", "/nouveau-mot-de-passe", "/auth/callback"]) {
       expect(isPublicPath(chemin)).toBe(true);
