@@ -112,8 +112,12 @@ Mis à jour le 2026-09-26 (lots A, B, C1, C2 et D). Branche `v2-assistant-gerant
   clic, annulable) et écran « limite atteinte » qui propose la formule au-dessus. Espace du Gérant
   « Formules » (`/admin/forfaits`) : activer, clore, changer ; compteur dans « À traiter ». La
   demande en cours est rangée dans `client_profiles.preferences.demande_forfait` (aucune
-  migration). **À savoir** : la « réponse prioritaire » promise aux formules payantes n'est
-  appliquée nulle part dans le code (les demandes ne reçoivent pas de priorité selon la formule).
+  migration). **Réponse prioritaire appliquée (2026-09-26, accord du Gérant)** : la formule du
+  client fixe la priorité de chaque nouvelle demande (`plans.features.priority` : Free normale,
+  Premium « Prioritaire », VIP et Private « Très prioritaire ») ; les concierges voient ces demandes
+  en tête de leur file. **Faille connue, non corrigée** : la base laisse un client modifier sa
+  propre demande (priorité, statut…) en contournant le site (RLS `requests_insert_own` et
+  `requests_update`) ; la corriger demande une migration en production, à faire avec le Gérant.
 - **Lot C2 « espaces de l'équipe » fait (2026-09-26)** : espace concierge refait (tableau de bord
   « à prendre / en cours », demande en deux colonnes, éditeur de proposition qui montre ce que verra
   le client, envoi et retrait d'option confirmés). Espace du Gérant : tableau de bord des deux
@@ -146,7 +150,7 @@ Mis à jour le 2026-09-26 (lots A, B, C1, C2 et D). Branche `v2-assistant-gerant
 - **Base de dev en pause** (limite de deux projets gratuits) : `.env.local` pointe encore vers elle,
   donc le serveur local ne peut pas lire de données. Solution à choisir avec le Gérant (voir
   `docs/instructions-claude-code-2026-09.md`). Ne jamais pointer le local vers la production.
-- **Construit et testé** (392 tests + audits SQL sur la base de dev) : boîte de réception
+- **Construit et testé** (400 tests + audits SQL sur la base de dev) : boîte de réception
   (`/admin/boite`), fiches et logements (`/admin/fiches`), assistant du Gérant, garde-fous, journal
   verrouillé, tests de sécurité. Le chat public de prospection est construit mais **désactivé**.
 - **Rien ne part automatiquement** : toutes les tâches de l'assistant sont au niveau « Propose ».

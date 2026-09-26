@@ -9,12 +9,18 @@ import { EtatVide } from "@/components/espace/etat-vide";
 import { IconeCategorie } from "@/components/espace/icones-categories";
 import { ilYa } from "@/lib/dates";
 import { REQUEST_STATUSES } from "@/server/requests/state-machine";
-import { requestStatusBadgeVariant, requestStatusLabel } from "@/server/requests/status-labels";
+import {
+  PRIORITE_LABELS,
+  demandePrioritaire,
+  requestStatusBadgeVariant,
+  requestStatusLabel,
+} from "@/server/requests/status-labels";
 
 export type RequestRow = {
   id: string;
   title: string;
   status: string;
+  priority: string;
   created_at: string;
   concierge_id: string | null;
   categories: { name: string; icon: string | null } | null;
@@ -119,6 +125,9 @@ export function VueDemandes({ d }: { d: DonneesDemandes }) {
                   <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="truncate font-medium text-fg">{r.title}</span>
                     <Badge variant={requestStatusBadgeVariant(r.status)}>{requestStatusLabel(r.status, true)}</Badge>
+                    {demandePrioritaire(r.priority) && (
+                      <Badge variant={r.priority === "urgent" ? "warning" : "accent"}>{PRIORITE_LABELS[r.priority]}</Badge>
+                    )}
                   </span>
                   <span className="mt-1 block text-sm text-fg-muted">
                     {[

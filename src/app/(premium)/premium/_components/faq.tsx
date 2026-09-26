@@ -5,7 +5,7 @@ const FAQ_ITEMS = [
   {
     question: "Combien de temps pour recevoir une proposition ?",
     answer:
-      "Le délai dépend de votre formule et de la complexité de la demande. Les membres Premium et VIP bénéficient d'une réponse prioritaire.",
+      "Le délai dépend de votre formule et de la complexité de la demande. Les formules Premium, VIP et Private bénéficient d'une réponse prioritaire : leurs demandes passent en tête de la file des concierges.",
   },
   {
     question: "Puis-je refuser une proposition ?",

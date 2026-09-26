@@ -33,6 +33,16 @@ describe("FORFAITS", () => {
     }
   });
 
+  it("n'annonce « réponse prioritaire » que pour les formules dont la priorité dépasse « normal » dans seed.sql", () => {
+    const seed = readFileSync(join(process.cwd(), "src/server/db/seed.sql"), "utf8");
+    for (const f of FORFAITS) {
+      const ligne = seed.split("\n").findIndex((l) => l.includes(`('${f.code}',`));
+      const priorite = /"priority": "(\w+)"/.exec(seed.split("\n")[ligne + 1] ?? "")?.[1];
+      expect(priorite, f.code).toBeDefined();
+      expect(f.reponsePrioritaire, f.code).toBe(priorite !== "normal");
+    }
+  });
+
   it("n'affiche aucun prix chiffré ni délai de réponse (décisions du 2026-09-26)", () => {
     for (const f of FORFAITS) {
       const textes = [prixAffiche(f), f.accroche, ...pointsForts(f)].join(" ");

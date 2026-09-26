@@ -8,6 +8,7 @@ import { assertRole } from "@/server/auth/guards";
 import { assertValidTransition } from "@/server/requests/state-machine";
 import { notify } from "@/server/notifications/dispatcher";
 import { getClientQuota } from "@/server/subscriptions/quota";
+import { prioriteDeFormule } from "@/server/requests/status-labels";
 
 const createRequestSchema = z.object({
   categoryId: z.string().uuid("Catégorie invalide."),
@@ -56,10 +57,19 @@ export async function createRequest(formData: FormData): Promise<CreateRequestSt
     };
   }
 
+  // « Réponse prioritaire » des formules payantes : la priorité de la demande
+  // vient de la formule du client (plans.features.priority), jamais du formulaire.
+  const { data: plan } = await supabase
+    .from("plans")
+    .select("features")
+    .eq("code", quota.planCode)
+    .maybeSingle<{ features: { priority?: unknown } | null }>();
+
   const { data: request, error: insertError } = await supabase
     .from("requests")
     .insert({
       client_id: profile.id,
+      priority: prioriteDeFormule(plan?.features?.priority),
       category_id: data.categoryId,
       title: data.title,
       description: data.description,

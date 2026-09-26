@@ -94,9 +94,26 @@ export function attenteReponseClient(status: string): boolean {
   return status === "PROPOSAL_SENT" || status === "WAITING_CLIENT";
 }
 
+/**
+ * Priorité d'une demande. Depuis le 2026-09-26 elle vient de la formule du
+ * client (« réponse prioritaire » des formules payantes) : « high » et
+ * « urgent » signifient « prioritaire » et « très prioritaire », pas une urgence.
+ */
+export const PRIORITES = ["low", "normal", "high", "urgent"] as const;
+export type Priorite = (typeof PRIORITES)[number];
+
 export const PRIORITE_LABELS: Record<string, string> = {
   low: "Basse",
   normal: "Normale",
-  high: "Haute",
-  urgent: "Urgente",
+  high: "Prioritaire",
+  urgent: "Très prioritaire",
 };
+
+/** Priorité donnée par la formule (`plans.features.priority`) ; « normal » si absente ou inconnue. */
+export function prioriteDeFormule(valeur: unknown): Priorite {
+  return PRIORITES.find((p) => p === valeur) ?? "normal";
+}
+
+export function demandePrioritaire(priorite: string): boolean {
+  return priorite === "high" || priorite === "urgent";
+}

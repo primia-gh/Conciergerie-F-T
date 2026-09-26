@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { REQUEST_STATUSES } from "./state-machine";
-import { ETAPES_DEMANDE, attenteReponseClient, etapeDemande, requestStatusLabel } from "./status-labels";
+import {
+  ETAPES_DEMANDE,
+  attenteReponseClient,
+  etapeDemande,
+  prioriteDeFormule,
+  requestStatusLabel,
+} from "./status-labels";
 
 describe("etapeDemande", () => {
   it("place chaque statut sur une étape du suivi, sauf l'annulation", () => {
@@ -54,5 +60,15 @@ describe("requestStatusLabel pour l'équipe", () => {
     expect(requestStatusLabel("WAITING_CLIENT")).toBe("En attente de votre réponse");
     expect(requestStatusLabel("WAITING_CLIENT", true)).toBe("En attente du client");
     expect(requestStatusLabel("NEW", true)).toBe(requestStatusLabel("NEW"));
+  });
+});
+
+describe("prioriteDeFormule", () => {
+  it("reprend la priorité de la formule, et retombe sur « normal » sinon", () => {
+    expect(prioriteDeFormule("high")).toBe("high");
+    expect(prioriteDeFormule("urgent")).toBe("urgent");
+    expect(prioriteDeFormule(undefined)).toBe("normal");
+    expect(prioriteDeFormule("critique")).toBe("normal");
+    expect(prioriteDeFormule(3)).toBe("normal");
   });
 });

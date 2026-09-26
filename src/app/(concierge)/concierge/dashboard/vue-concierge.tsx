@@ -8,6 +8,7 @@ import { SuiviCompact } from "@/components/espace/suivi-demande";
 import { dateLongue, ilYa } from "@/lib/dates";
 import {
   PRIORITE_LABELS,
+  demandePrioritaire,
   TERMINAL_STATUSES,
   attenteReponseClient,
   requestStatusBadgeVariant,
@@ -25,7 +26,7 @@ export type RequestRow = {
 };
 
 function CarteDemande({ r, aPrendre, discrete }: { r: RequestRow; aPrendre?: boolean; discrete?: boolean }) {
-  const prioritaire = r.priority === "high" || r.priority === "urgent";
+  const prioritaire = demandePrioritaire(r.priority);
   return (
     <li>
       <Link href={`/concierge/requests/${r.id}`} className={cn(carteLien, discrete && "bg-transparent")}>
@@ -41,7 +42,7 @@ function CarteDemande({ r, aPrendre, discrete }: { r: RequestRow; aPrendre?: boo
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <p className={cn("truncate font-medium", discrete ? "text-fg-muted" : "text-fg")}>{r.title}</p>
             {prioritaire && (
-              <Badge variant={r.priority === "urgent" ? "danger" : "warning"}>
+              <Badge variant={r.priority === "urgent" ? "warning" : "accent"}>
                 {PRIORITE_LABELS[r.priority]}
               </Badge>
             )}
@@ -108,7 +109,9 @@ export function VueConcierge({
           <TitreSection id="a-prendre" compte={aPrendre.length}>
             À prendre en charge
           </TitreSection>
-          <p className="mt-2 text-sm text-fg-muted">Les plus anciennes d&apos;abord.</p>
+          <p className="mt-2 text-sm text-fg-muted">
+            Les formules prioritaires d&apos;abord, puis les plus anciennes.
+          </p>
           {aPrendre.length === 0 ? (
             <EtatVide icone={Inbox} titre="Rien à prendre" className="mt-4">
               Les nouvelles demandes des clients apparaîtront ici.

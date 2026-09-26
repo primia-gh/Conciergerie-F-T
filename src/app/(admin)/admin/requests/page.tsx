@@ -29,7 +29,7 @@ export default async function AdminRequestsPage({ searchParams }: PageProps<"/ad
 
   let query = supabase
     .from("requests")
-    .select("id, title, status, created_at, concierge_id, categories(name, icon)", { count: "exact" })
+    .select("id, title, status, priority, created_at, concierge_id, categories(name, icon)", { count: "exact" })
     .order("created_at", { ascending: false });
 
   if (status) query = query.eq("status", status);

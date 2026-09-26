@@ -17,6 +17,9 @@ export default async function ConciergeDashboardPage() {
       .select(SELECT)
       .is("concierge_id", null)
       .eq("status", "NEW")
+      // Réponse prioritaire des formules payantes : les plus prioritaires d'abord
+      // (ordre de l'énumération : low < normal < high < urgent), puis les plus anciennes.
+      .order("priority", { ascending: false })
       .order("created_at", { ascending: true })
       .limit(50)
       .returns<RequestRow[]>(),

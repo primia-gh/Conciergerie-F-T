@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowDown, ArrowLeft, MessageCircle, UserRound } from "lucide-react";
+import { ArrowDown, ArrowLeft, MessageCircle, Sparkles, UserRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   AttachmentsCard,
@@ -16,6 +16,7 @@ import { SuiviDetaille } from "@/components/espace/suivi-demande";
 import { dateCourte, dateLongue } from "@/lib/dates";
 import {
   attenteReponseClient,
+  demandePrioritaire,
   requestStatusBadgeVariant,
   requestStatusLabel,
 } from "@/server/requests/status-labels";
@@ -67,9 +68,17 @@ export function VueDemande({ d }: { d: DonneesDemande }) {
           <h1 className="mt-3 font-display text-4xl break-words text-fg sm:text-5xl">{r.title}</h1>
           <p className="mt-3 text-sm text-fg-muted">Demandée le {dateLongue(r.created_at)}</p>
         </div>
-        <Badge variant={requestStatusBadgeVariant(r.status)} className="self-start px-3 py-1 text-sm">
-          {requestStatusLabel(r.status)}
-        </Badge>
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <Badge variant={requestStatusBadgeVariant(r.status)} className="px-3 py-1 text-sm">
+            {requestStatusLabel(r.status)}
+          </Badge>
+          {demandePrioritaire(r.priority) && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-accent">
+              <Sparkles aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={1.5} />
+              Traitement prioritaire, grâce à votre formule
+            </span>
+          )}
+        </div>
       </header>
 
       <section aria-label="Suivi de la demande" className="mt-8 rounded-lg border border-border bg-surface px-4 py-6 sm:px-8">

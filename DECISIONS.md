@@ -367,5 +367,12 @@ rattachement (même règle que `quota.ts`). Chaque geste (demande, annulation, a
 écrit une ligne de journal `activite = premium`. Une table dédiée pourra remplacer ce rangement
 quand le paiement en ligne arrivera.
 
-**À trancher plus tard** : la « réponse prioritaire » des formules payantes est affichée (FAQ,
-accueil, comparaison) mais aucun code ne l'applique aux demandes.
+**Réponse prioritaire (même jour, accord du Gérant)** : `createRequest` lit la priorité de la
+formule du client (`plans.features.priority`, déjà définie par `seed.sql` : Free « normal »,
+Premium « high », VIP et Private « urgent ») et l'inscrit sur la demande ; le formulaire ne peut
+pas la choisir. Les concierges voient les demandes à prendre en charge par priorité décroissante,
+puis de la plus ancienne à la plus récente. « high » et « urgent » s'affichent « Prioritaire » et
+« Très prioritaire » : une formule, pas une urgence. Un test vérifie que « Réponse prioritaire »
+n'est annoncée que pour les formules dont la priorité dépasse « normal ». Limite connue : les
+règles d'accès laissent un client modifier sa propre demande en passant outre le site ; un
+verrou en base (déclencheur) demandera une migration en production.
