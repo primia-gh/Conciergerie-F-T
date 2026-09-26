@@ -1,95 +1,22 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { FILTRES, VueProspects, type ProspectRow } from "./vue-prospects";
 
-type ProspectRow = {
-  id: string;
-  type: string | null;
-  adresse: string | null;
-  disponibilite_souhaitee: string | null;
-  created_at: string;
-  proprietaire: {
-    id: string;
-    nom: string;
-    email: string | null;
-    telephone: string | null;
-    statut: string;
-    source: string | null;
-  } | null;
-};
+export const metadata: Metadata = { title: "Prospects F&T" };
 
-const ORIGINE: Record<string, string> = {
-  formulaire_estimation: "Formulaire d'estimation",
-  chat_site: "Chat du site",
-};
+export default async function AdminFtProspectsPage({ searchParams }: PageProps<"/admin/ft">) {
+  const { statut: brut } = await searchParams;
+  const statut = FILTRES.find((f) => f === brut) ?? null;
 
-const STATUT_VARIANT: Record<string, "neutral" | "accent" | "success" | "warning"> = {
-  prospect: "accent",
-  en_discussion: "warning",
-  client: "success",
-  perdu: "neutral",
-};
-
-export default async function AdminFtProspectsPage() {
   const supabase = await createClient();
-
-  const { data: prospects } = await supabase
+  const { data } = await supabase
     .from("bien_prospect")
     .select(
-      "id, type, adresse, disponibilite_souhaitee, created_at, proprietaire:proprietaire_id(id, nom, email, telephone, statut, source)",
+      "id, type, adresse, capacite, created_at, proprietaire:proprietaire_id(id, nom, telephone, statut, source)",
     )
     .order("created_at", { ascending: false })
-    .limit(100)
+    .limit(200)
     .returns<ProspectRow[]>();
 
-  return (
-    <div className="mx-auto max-w-4xl px-6 py-16">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-medium text-fg">Prospects F&amp;T</h1>
-        <div className="flex gap-4 text-sm">
-          <Link href="/admin/fiches/ft/offre_ft" className="text-fg-muted hover:text-fg">
-            Fiche offre
-          </Link>
-          <Link href="/admin/ft/regles" className="text-fg-muted hover:text-fg">
-            Réglages d&apos;autonomie
-          </Link>
-        </div>
-      </div>
-
-      {!prospects || prospects.length === 0 ? (
-        <p className="mt-6 text-sm text-fg-muted">
-          Aucun prospect pour l&apos;instant. Ils apparaîtront ici dès qu&apos;un propriétaire
-          demandera une estimation sur la page /proprietaires.
-        </p>
-      ) : (
-        <ul className="mt-6 flex flex-col gap-3">
-          {prospects.map((p) => (
-            <li key={p.id}>
-              <Link href={`/admin/ft/${p.id}`}>
-                <Card className="transition-colors hover:bg-bg-subtle">
-                  <CardContent className="flex items-center justify-between pt-5">
-                    <div>
-                      <p className="font-medium text-fg">{p.proprietaire?.nom ?? "Prospect"}</p>
-                      <p className="text-sm text-fg-muted">
-                        {p.type ?? "Type non précisé"} · {p.adresse ?? "Adresse non précisée"}
-                        {p.proprietaire?.telephone ? ` · ${p.proprietaire.telephone}` : ""}
-                      </p>
-                      <p className="text-xs text-fg-muted">
-                        {ORIGINE[p.proprietaire?.source ?? ""] ?? "Origine inconnue"} ·{" "}
-                        {new Date(p.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Paris" })}
-                      </p>
-                    </div>
-                    <Badge variant={STATUT_VARIANT[p.proprietaire?.statut ?? "prospect"]}>
-                      {p.proprietaire?.statut ?? "prospect"}
-                    </Badge>
-                  </CardContent>
-                </Card>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+  return <VueProspects data={data ?? []} statut={statut} />;
 }

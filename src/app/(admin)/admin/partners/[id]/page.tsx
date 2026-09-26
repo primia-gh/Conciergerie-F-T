@@ -1,8 +1,13 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { updatePartner } from "@/server/partners/actions";
+import { EnTetePage, LienRetour, PAGE } from "@/components/espace/en-tete";
+import { STATUT_PARTENAIRE, libelle } from "@/components/espace/libelles";
+import { Badge } from "@/components/ui/badge";
 import { PartnerForm, type PartnerFormValues } from "../partner-form";
+
+export const metadata: Metadata = { title: "Partenaire" };
 
 export default async function EditPartnerPage({ params }: PageProps<"/admin/partners/[id]">) {
   const { id } = await params;
@@ -37,12 +42,14 @@ export default async function EditPartnerPage({ params }: PageProps<"/admin/part
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16">
-      <Link href="/admin/partners" className="text-sm text-fg-muted hover:text-fg">
-        ← Retour aux partenaires
-      </Link>
-      <h1 className="mt-4 font-display text-2xl font-medium text-fg">{partner.name}</h1>
-      <div className="mt-6">
+    <div className={PAGE.etroite}>
+      <LienRetour href="/admin/partners">Partenaires</LienRetour>
+      <EnTetePage
+        surtitre="Conciergerie Premium"
+        titre={partner.name}
+        actions={<Badge variant={libelle(STATUT_PARTENAIRE, partner.status).variante}>{libelle(STATUT_PARTENAIRE, partner.status).libelle}</Badge>}
+      />
+      <div className="mt-8">
         <PartnerForm categories={categories ?? []} partner={values} action={updatePartner.bind(null, id)} />
       </div>
     </div>

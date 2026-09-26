@@ -323,3 +323,23 @@ défaut, Turbopack rangeait les polices des deux activités dans un fichier CSS 
 les préchargeait toutes. Vérifié dans `next-font-manifest.json` : F&T 4 fichiers de police,
 Premium et espaces connectés 3, page de choix 6. Réglage expérimental : à revoir si une mise à jour
 de Next le retire, et à surveiller (ordre du CSS) après chaque mise à jour.
+
+## Espaces de l'équipe : concierge et Gérant (lot C2, 2026-09-26)
+
+**Tableau de bord du Gérant** : il couvre les deux activités et commence par « À traiter »
+(escalades et brouillons de la boîte de réception, nouveaux propriétaires F&T, demandes Premium
+sans concierge). Il signale toute tâche de l'assistant qui n'est pas au niveau « Propose ».
+
+**« Tout remettre en « Propose » »** : le « bouton unique » du cahier des charges (niveaux
+d'autonomie). Il ne touche que les tâches F&T actives au-dessus de « Propose », crée une nouvelle
+version de chaque règle et écrit une ligne de journal par tâche. Il demande une confirmation.
+
+**Détail d'une demande Premium pour le Gérant** (`/admin/requests/[id]`) : en lecture seule. Le
+suivi, les messages et les propositions restent l'affaire du concierge ; le Gérant voit tout
+(la RLS l'y autorise déjà), notes internes comprises.
+
+**Formulaires** : ceux de l'équipe s'envoient par `envoyerSansVider` plutôt que par l'attribut
+`action`, que React vide même quand l'action renvoie une erreur (un message collé ou un brouillon
+corrigé était perdu). Les statuts s'affichent en français (`components/espace/libelles.ts`, testé
+contre les énumérations de la base) ; côté équipe, « En attente de votre réponse » devient « En
+attente du client ».

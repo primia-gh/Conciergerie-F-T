@@ -1,8 +1,9 @@
+import type { Metadata } from "next";
 import { getCurrentProfile } from "@/server/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { StatTile } from "@/components/features/stat-tile";
-import { HorizontalBarChart } from "@/components/features/horizontal-bar-chart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VueGerant } from "./vue-gerant";
+
+export const metadata: Metadata = { title: "Tableau de bord" };
 
 const OPEN_STATUSES_EXCLUDED = ["COMPLETED", "CANCELLED"];
 
@@ -11,7 +12,14 @@ export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
   const [
-    { count: totalRequests },
+    { count: escalades },
+    { count: escaladesUrgentes },
+    { count: brouillons },
+    { count: prospects },
+    { count: prospectsTotal },
+    { count: demandesSansConcierge },
+    { data: reglesAutonomes },
+    { data: logements },
     { count: openRequests },
     { count: completedRequests },
     { count: totalBookings },
@@ -22,15 +30,34 @@ export default async function AdminDashboardPage() {
     { data: distinctClients },
     { data: assignmentTimes },
   ] = await Promise.all([
-    supabase.from("requests").select("id", { count: "exact", head: true }),
+    // Boîte de réception : ce qui attend le Gérant, toutes activités confondues.
+    supabase.from("demande").select("id", { count: "exact", head: true }).eq("statut", "escalade").is("traite_le", null),
+    supabase
+      .from("demande")
+      .select("id", { count: "exact", head: true })
+      .eq("statut", "escalade")
+      .eq("escalade_urgente", true)
+      .is("traite_le", null),
+    supabase.from("demande").select("id", { count: "exact", head: true }).eq("statut", "brouillon_pret").is("traite_le", null),
+    // F&T
+    supabase.from("proprietaire").select("id", { count: "exact", head: true }).eq("statut", "prospect"),
+    supabase.from("bien_prospect").select("id", { count: "exact", head: true }),
+    // Premium
+    supabase.from("requests").select("id", { count: "exact", head: true }).eq("status", "NEW").is("concierge_id", null),
+    // Tâches de l'assistant qui peuvent agir sans clic du Gérant (celles de /admin/ft/regles).
+    supabase
+      .from("regle")
+      .select("tache, niveau_autonomie")
+      .eq("activite", "ft")
+      .eq("actif", true)
+      .neq("niveau_autonomie", "propose")
+      .returns<{ tache: string; niveau_autonomie: string }[]>(),
+    supabase.from("logement").select("statut").returns<{ statut: string }[]>(),
     supabase
       .from("requests")
       .select("id", { count: "exact", head: true })
       .not("status", "in", `(${OPEN_STATUSES_EXCLUDED.join(",")})`),
-    supabase
-      .from("requests")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "COMPLETED"),
+    supabase.from("requests").select("id", { count: "exact", head: true }).eq("status", "COMPLETED"),
     supabase.from("bookings").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "client"),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "concierge"),
@@ -49,86 +76,63 @@ export default async function AdminDashboardPage() {
     const name = r.categories?.name ?? "Autre";
     categoryCounts.set(name, (categoryCounts.get(name) ?? 0) + 1);
   }
-  const categoryData = [...categoryCounts.entries()]
+  const parCategorie = [...categoryCounts.entries()]
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value);
 
+  // Jours à l'heure de Paris (le serveur tourne en UTC).
+  const jourParis = (d: Date) => d.toLocaleDateString("fr-CA", { timeZone: "Europe/Paris" });
   const dayCounts = new Map<string, number>();
   const today = new Date();
   for (let i = 13; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    dayCounts.set(d.toISOString().slice(0, 10), 0);
+    dayCounts.set(jourParis(new Date(today.getTime() - i * 86_400_000)), 0);
   }
   for (const r of requestsWithDate ?? []) {
-    const key = r.created_at.slice(0, 10);
-    if (dayCounts.has(key)) {
-      dayCounts.set(key, (dayCounts.get(key) ?? 0) + 1);
-    }
+    const key = jourParis(new Date(r.created_at));
+    if (dayCounts.has(key)) dayCounts.set(key, (dayCounts.get(key) ?? 0) + 1);
   }
-  const dailyData = [...dayCounts.entries()].map(([label, value]) => ({
-    label: label.slice(5).replace("-", "/"),
+  const parJour = [...dayCounts.entries()].map(([jour, value]) => ({
+    label: `${jour.slice(8, 10)}/${jour.slice(5, 7)}`,
     value,
   }));
-
-  const activeClients = new Set((distinctClients ?? []).map((r) => r.client_id)).size;
 
   const responseTimesMs = (assignmentTimes ?? [])
     .filter((row) => row.requests?.created_at)
     .map((row) => new Date(row.created_at).getTime() - new Date(row.requests!.created_at).getTime());
-  const avgResponseHours =
+  const heuresPriseEnCharge =
     responseTimesMs.length > 0
       ? responseTimesMs.reduce((sum, ms) => sum + ms, 0) / responseTimesMs.length / (1000 * 60 * 60)
       : null;
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-16">
-      <div>
-        <h1 className="font-display text-3xl text-fg">Bonjour {profile?.first_name ?? ""}</h1>
-        <p className="mt-1 text-fg-muted">Vue d&apos;ensemble de la plateforme.</p>
-      </div>
-
-      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <StatTile label="Demandes totales" value={String(totalRequests ?? 0)} />
-        <StatTile label="Demandes ouvertes" value={String(openRequests ?? 0)} />
-        <StatTile label="Demandes terminées" value={String(completedRequests ?? 0)} />
-        <StatTile label="Clients" value={String(totalClients ?? 0)} note={`${activeClients} avec ≥1 demande`} />
-        <StatTile label="Concierges" value={String(totalConcierges ?? 0)} />
-        <StatTile label="Réservations" value={String(totalBookings ?? 0)} />
-        <StatTile
-          label="Temps moyen de prise en charge"
-          value={avgResponseHours !== null ? `${avgResponseHours.toFixed(1)} h` : "—"}
-          note={avgResponseHours === null ? "Aucune demande assignée pour l'instant" : undefined}
-        />
-        <StatTile label="Chiffre d'affaires" value="—" note="Nécessite Stripe (Phase M10, non fait)" />
-        <StatTile label="Satisfaction" value="—" note="Nécessite des avis clients (non implémenté)" />
-      </div>
-
-      <div className="mt-8 grid gap-6 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Demandes par catégorie</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {categoryData.length === 0 ? (
-              <p className="text-sm text-fg-muted">Aucune donnée pour l&apos;instant.</p>
-            ) : (
-              <HorizontalBarChart data={categoryData} />
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Demandes par jour (14 derniers jours)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <HorizontalBarChart data={dailyData.filter((d) => d.value > 0)} />
-            {dailyData.every((d) => d.value === 0) && (
-              <p className="text-sm text-fg-muted">Aucune demande sur la période.</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <VueGerant
+      d={{
+        prenom: profile?.first_name ?? null,
+        aTraiter: {
+          escalades: escalades ?? 0,
+          escaladesUrgentes: escaladesUrgentes ?? 0,
+          brouillons: brouillons ?? 0,
+          prospects: prospects ?? 0,
+          demandesSansConcierge: demandesSansConcierge ?? 0,
+        },
+        reglesAutonomes: (reglesAutonomes ?? []).map((r) => ({ tache: r.tache, niveau: r.niveau_autonomie })),
+        ft: {
+          logements: logements?.length ?? 0,
+          logementsActifs: (logements ?? []).filter((l) => l.statut === "actif").length,
+          prospectsTotal: prospectsTotal ?? 0,
+        },
+        premium: {
+          ouvertes: openRequests ?? 0,
+          terminees: completedRequests ?? 0,
+          clients: totalClients ?? 0,
+          clientsActifs: new Set((distinctClients ?? []).map((r) => r.client_id)).size,
+          concierges: totalConcierges ?? 0,
+          reservations: totalBookings ?? 0,
+          heuresPriseEnCharge,
+          parCategorie,
+          parJour,
+        },
+      }}
+    />
   );
 }

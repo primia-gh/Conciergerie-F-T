@@ -1,13 +1,11 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LIBELLES_ESCALADE } from "@/lib/agent/demande";
 import type { CategorieEscalade } from "@/lib/agent/missions/assistant-gerant/outils";
 import { sectionsPour } from "@/lib/agent/fiches-modele";
-import { AjoutFicheForm } from "./ajout-fiche-form";
-import { ClotureForm } from "./cloture-form";
+import { VueDemandeBoite } from "./vue-demande-boite";
+
+export const metadata: Metadata = { title: "Message reçu" };
 
 type DemandeRow = {
   id: string;
@@ -29,14 +27,6 @@ type DemandeRow = {
 };
 
 const ACTIVITE_LIBELLE = { ft: "F&T", premium: "Premium" } as const;
-const LANGUE_LIBELLE: Record<string, string> = {
-  fr: "français",
-  en: "anglais",
-  de: "allemand",
-  es: "espagnol",
-  it: "italien",
-  nl: "néerlandais",
-};
 
 export default async function AdminBoiteDemandePage({ params }: PageProps<"/admin/boite/[id]">) {
   const { id } = await params;
@@ -52,7 +42,6 @@ export default async function AdminBoiteDemandePage({ params }: PageProps<"/admi
 
   if (!demande) notFound();
 
-  const estEscalade = demande.statut === "escalade";
   const traitee = demande.traite_le !== null;
   const fiches = Array.isArray(demande.fiches_utilisees) ? demande.fiches_utilisees : [];
   const logement = Array.isArray(demande.logement) ? demande.logement[0] : demande.logement;
@@ -75,98 +64,25 @@ export default async function AdminBoiteDemandePage({ params }: PageProps<"/admi
   ];
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <Link href="/admin/boite" className="text-sm text-fg-muted hover:text-fg">
-        ← Retour à la boîte de réception
-      </Link>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <Badge variant="neutral">{ACTIVITE_LIBELLE[demande.activite]}</Badge>
-        {logement && <Badge variant="accent">{logement.nom}</Badge>}
-        <span className="text-sm text-fg-muted">
-          {demande.expediteur ?? "Expéditeur non précisé"} ·{" "}
-          {new Date(demande.created_at).toLocaleString("fr-FR")}
-        </span>
-      </div>
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Message reçu</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="whitespace-pre-wrap text-sm text-fg">{demande.contenu_recu}</p>
-        </CardContent>
-      </Card>
-
-      {estEscalade && (
-        <div
-          role="alert"
-          className={`mt-6 rounded-md border p-4 text-sm ${
-            demande.escalade_urgente
-              ? "border-danger bg-danger/10 text-danger"
-              : "border-warning bg-warning/10 text-warning"
-          }`}
-        >
-          <p className="font-medium">
-            {demande.escalade_urgente ? "Urgent — " : ""}À traiter par vous
-            {demande.categorie_escalade
-              ? ` : ${LIBELLES_ESCALADE[demande.categorie_escalade] ?? demande.categorie_escalade}`
-              : ""}
-          </p>
-          {demande.motif_escalade && <p className="mt-1">{demande.motif_escalade}</p>}
-        </div>
-      )}
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>
-            {traitee ? "Réponse enregistrée" : estEscalade && demande.brouillon ? "Brouillon d'attente" : "Brouillon"}
-          </CardTitle>
-          {demande.langue && !traitee && (
-            <p className="text-sm text-fg-muted">
-              Rédigé en {LANGUE_LIBELLE[demande.langue] ?? demande.langue}.
-            </p>
-          )}
-        </CardHeader>
-        <CardContent>
-          {traitee ? (
-            <>
-              <p className="text-sm text-fg-muted">
-                {demande.statut === "valide"
-                  ? "Validé tel quel"
-                  : demande.statut === "corrige"
-                    ? "Corrigé par vous"
-                    : "Escalade traitée"}{" "}
-                le {new Date(demande.traite_le!).toLocaleString("fr-FR")}.
-              </p>
-              <p className="mt-3 whitespace-pre-wrap text-sm text-fg">
-                {demande.reponse_finale ?? "Aucune réponse enregistrée."}
-              </p>
-            </>
-          ) : (
-            <ClotureForm
-              demandeId={demande.id}
-              estEscalade={estEscalade}
-              texteInitial={demande.brouillon ?? ""}
-            />
-          )}
-        </CardContent>
-      </Card>
-
-      {proposerAjout && (
-        <AjoutFicheForm
-          demandeId={demande.id}
-          options={optionsAjout}
-          ligneInitiale={demande.reponse_finale ?? ""}
-        />
-      )}
-
-      {fiches.length > 0 && (
-        <p className="mt-6 text-sm text-fg-muted">
-          Fiches fournies à l&apos;assistant :{" "}
-          {fiches.map((f) => `${f.section} (v${f.version})`).join(", ")}.
-        </p>
-      )}
-    </div>
+    <VueDemandeBoite
+      d={{
+        id: demande.id,
+        activite: demande.activite,
+        statut: demande.statut,
+        expediteur: demande.expediteur,
+        logement: logement?.nom ?? null,
+        contenu_recu: demande.contenu_recu,
+        langue: demande.langue,
+        brouillon: demande.brouillon,
+        reponse_finale: demande.reponse_finale,
+        motif_escalade: demande.motif_escalade,
+        categorie_escalade: demande.categorie_escalade,
+        escalade_urgente: demande.escalade_urgente,
+        fiches,
+        traite_le: demande.traite_le,
+        created_at: demande.created_at,
+        optionsAjout: proposerAjout ? optionsAjout : [],
+      }}
+    />
   );
 }

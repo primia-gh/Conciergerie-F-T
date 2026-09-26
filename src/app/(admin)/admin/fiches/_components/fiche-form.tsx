@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { envoyerSansVider } from "@/hooks/envoyer-sans-vider";
 import { enregistrerFiche, type FicheFormState } from "@/server/agent/fiches-admin";
 
 const initialState: FicheFormState = { error: null };
@@ -10,7 +11,7 @@ const initialState: FicheFormState = { error: null };
 export function AvertissementsCodes({ lignes }: { lignes?: string[] }) {
   if (!lignes || lignes.length === 0) return null;
   return (
-    <div role="alert" className="rounded-md border border-warning bg-warning/10 p-3 text-sm text-warning">
+    <div role="alert" className="rounded-lg border border-warning bg-warning/10 p-4 text-sm text-warning">
       <p className="font-medium">
         Cette fiche est enregistrée, mais ces lignes ressemblent à un code ou à un mot de passe :
       </p>
@@ -41,23 +42,36 @@ export function FicheForm({
   const [state, formAction, pending] = useActionState(enregistrerFiche, initialState);
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    // Erreur : le texte modifié reste dans la zone (voir envoyerSansVider).
+    <form onSubmit={envoyerSansVider(formAction)} className="flex flex-col gap-3">
       <input type="hidden" name="activite" value={activite} />
       {logementId && <input type="hidden" name="logementId" value={logementId} />}
       <input type="hidden" name="section" value={section} />
+      <label htmlFor={`contenu-${section}`} className="sr-only">
+        Contenu de la fiche
+      </label>
       <Textarea
+        id={`contenu-${section}`}
         name="contenu"
         defaultValue={contenu}
-        rows={18}
-        className="font-mono text-sm"
+        rows={20}
+        className="font-mono text-sm leading-relaxed"
         placeholder="Une information par ligne."
         disabled={pending}
       />
-      {state.error && <p className="text-sm text-danger">{state.error}</p>}
-      {state.success && <p className="text-sm text-success">Nouvelle version enregistrée.</p>}
+      {state.error && (
+        <p role="alert" className="rounded-md border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+          {state.error}
+        </p>
+      )}
+      {state.success && (
+        <p role="status" className="text-sm text-success">
+          Nouvelle version enregistrée.
+        </p>
+      )}
       <AvertissementsCodes lignes={state.avertissements} />
       <div>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" size="lg" disabled={pending} aria-busy={pending}>
           {pending ? "Enregistrement…" : "Enregistrer une nouvelle version"}
         </Button>
       </div>

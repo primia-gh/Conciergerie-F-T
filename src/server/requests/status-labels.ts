@@ -23,8 +23,13 @@ export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
 
 export const TERMINAL_STATUSES: RequestStatus[] = ["COMPLETED", "CANCELLED"];
 
-export function requestStatusLabel(status: string): string {
-  return REQUEST_STATUS_LABELS[status as RequestStatus] ?? status;
+/** Formulations propres à l'équipe (concierge, Gérant) quand celle du client ne convient pas. */
+const LIBELLES_EQUIPE: Partial<Record<RequestStatus, string>> = {
+  WAITING_CLIENT: "En attente du client",
+};
+
+export function requestStatusLabel(status: string, pourEquipe = false): string {
+  return (pourEquipe && LIBELLES_EQUIPE[status as RequestStatus]) || REQUEST_STATUS_LABELS[status as RequestStatus] || status;
 }
 
 export type StatusBadgeVariant = "neutral" | "accent" | "success" | "danger";

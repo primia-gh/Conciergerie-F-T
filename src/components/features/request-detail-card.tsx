@@ -136,7 +136,16 @@ export function AttachmentsCard({ attachments, className = "mt-4" }: { attachmen
   );
 }
 
-export function HistoryCard({ history, className = "mt-4" }: { history: HistoryRow[]; className?: string }) {
+export function HistoryCard({
+  history,
+  className = "mt-4",
+  pourEquipe = false,
+}: {
+  history: HistoryRow[];
+  className?: string;
+  /** Libellés vus par l'équipe (« En attente du client ») plutôt que par le client. */
+  pourEquipe?: boolean;
+}) {
   return (
     <Card className={className}>
       <CardHeader>
@@ -157,7 +166,7 @@ export function HistoryCard({ history, className = "mt-4" }: { history: HistoryR
                   className={`relative mt-1.5 h-[7px] w-[7px] shrink-0 rounded-full ${i === history.length - 1 ? "bg-accent" : "bg-fg-faint"}`}
                 />
                 <div className="min-w-0 text-sm">
-                  <p className="font-medium text-fg">{requestStatusLabel(entry.to_status)}</p>
+                  <p className="font-medium text-fg">{requestStatusLabel(entry.to_status, pourEquipe)}</p>
                   {entry.note && <p className="mt-0.5 text-fg-muted">{entry.note}</p>}
                   <p className="mt-0.5 text-xs text-fg-faint">
                     {dateCourte(entry.created_at)} à {heure(entry.created_at)}

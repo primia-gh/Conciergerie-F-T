@@ -4,6 +4,7 @@ import { useActionState, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { envoyerSansVider } from "@/hooks/envoyer-sans-vider";
 import { cloturerDemande } from "@/server/agent/boite";
 import type { FormState } from "@/server/agent/ft-admin";
 
@@ -33,7 +34,8 @@ export function ClotureForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    // Erreur : le texte corrigé reste dans la zone (voir envoyerSansVider).
+    <form onSubmit={envoyerSansVider(formAction)} className="flex flex-col gap-3">
       <Label htmlFor="reponse">
         {estEscalade
           ? "Votre réponse (facultatif — vous pouvez aussi simplement marquer le cas comme traité)"
@@ -47,10 +49,14 @@ export function ClotureForm({
         defaultValue={texteInitial}
         disabled={pending}
       />
-      {state.error && <p className="text-sm text-danger">{state.error}</p>}
+      {state.error && (
+        <p role="alert" className="rounded-md border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+          {state.error}
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <Button type="button" variant="secondary" onClick={copier}>
-          {copie ? "Copié" : "Copier le texte"}
+          {copie ? "Copié ✓" : "Copier le texte"}
         </Button>
         <Button type="submit" disabled={pending}>
           {pending ? "Enregistrement…" : estEscalade ? "Marquer comme traité" : "Valider"}

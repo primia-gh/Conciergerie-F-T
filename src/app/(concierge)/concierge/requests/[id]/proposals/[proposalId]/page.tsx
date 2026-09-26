@@ -1,11 +1,11 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/auth/session";
-import { Badge } from "@/components/ui/badge";
-import { AddOptionForm } from "./add-option-form";
-import { OptionList, type OptionRow } from "./option-list";
-import { SendProposalButton } from "./send-proposal-button";
+import type { OptionRow } from "./option-list";
+import { VueProposition } from "./vue-proposition";
+
+export const metadata: Metadata = { title: "Proposition" };
 
 export default async function ProposalEditorPage({
   params,
@@ -16,18 +16,25 @@ export default async function ProposalEditorPage({
 
   const { data: proposal } = await supabase
     .from("proposals")
-    .select("id, status, request_id, concierge_id")
+    .select("id, status, request_id, concierge_id, created_at, sent_at")
     .eq("id", proposalId)
-    .maybeSingle<{ id: string; status: string; request_id: string; concierge_id: string }>();
+    .maybeSingle<{
+      id: string;
+      status: string;
+      request_id: string;
+      concierge_id: string;
+      created_at: string;
+      sent_at: string | null;
+    }>();
 
   if (!proposal || proposal.request_id !== requestId || proposal.concierge_id !== profile?.id) {
     notFound();
   }
 
-  const [{ data: options }, { data: partners }] = await Promise.all([
+  const [{ data: options }, { data: partners }, { data: request }] = await Promise.all([
     supabase
       .from("proposal_options")
-      .select("id, name, description, price, address")
+      .select("id, name, description, price, address, conditions, advantages")
       .eq("proposal_id", proposalId)
       .returns<OptionRow[]>(),
     supabase
@@ -36,48 +43,18 @@ export default async function ProposalEditorPage({
       .eq("status", "active")
       .order("name")
       .returns<{ id: string; name: string }[]>(),
+    supabase.from("requests").select("title").eq("id", requestId).maybeSingle<{ title: string }>(),
   ]);
 
-  const isDraft = proposal.status === "draft";
-
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16">
-      <Link href={`/concierge/requests/${requestId}`} className="text-sm text-fg-muted hover:text-fg">
-        ← Retour à la demande
-      </Link>
-
-      <div className="mt-4 flex items-center justify-between">
-        <h1 className="font-display text-2xl font-medium text-fg">Proposition</h1>
-        <Badge variant={isDraft ? "neutral" : "accent"}>{proposal.status}</Badge>
-      </div>
-
-      {!isDraft && (
-        <p className="mt-2 text-sm text-fg-muted">
-          Cette proposition a déjà été envoyée et ne peut plus être modifiée.
-        </p>
-      )}
-
-      <div className="mt-6">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-fg-muted">Options</h2>
-        <div className="mt-3">
-          <OptionList options={options ?? []} requestId={requestId} />
-        </div>
-      </div>
-
-      {isDraft && (
-        <>
-          <div className="mt-6">
-            <AddOptionForm proposalId={proposalId} partners={partners ?? []} />
-          </div>
-          <div className="mt-6 flex justify-end">
-            <SendProposalButton
-              proposalId={proposalId}
-              requestId={requestId}
-              disabled={(options ?? []).length === 0}
-            />
-          </div>
-        </>
-      )}
-    </div>
+    <VueProposition
+      d={{
+        requestId,
+        titreDemande: request?.title ?? null,
+        proposition: proposal,
+        options: options ?? [],
+        partenaires: partners ?? [],
+      }}
+    />
   );
 }

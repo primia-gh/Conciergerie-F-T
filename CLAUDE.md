@@ -74,7 +74,7 @@ déployé et utilisé. Décision du 2026-09-17 : **les deux coexistent sur le m�
 
 ## Où on en est
 
-Mis à jour le 2026-09-25 (lots A, B et C1). Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
+Mis à jour le 2026-09-26 (lots A, B, C1 et C2). Branche `v2-assistant-gerant` **fusionnée dans `master` et en ligne**
 (étapes 1 et 2 de `docs/instructions-claude-code-2026-09.md`). On travaille désormais sur `master`.
 
 - **Étape 3a et refonte visuelle faites (2026-09-25)** : `/` = page de choix, `/premium` = accueil
@@ -103,8 +103,16 @@ Mis à jour le 2026-09-25 (lots A, B et C1). Branche `v2-assistant-gerant` **fus
   « Mon compte » : e-mail affiché, changement de mot de passe sans e-mail. Dates à l'heure de
   Paris (`src/lib/dates.ts`). Polices rangées par activité + `cssChunking: "graph"` : chaque page
   ne précharge que les siennes. **Vérifié** sur une page d'aperçu à données fictives (base de dev
-  en pause), jamais avec un vrai compte client : à essayer en ligne. **Reste C2** : contenu des
-  espaces concierge, partenaire et Gérant (le cadre est déjà en place).
+  en pause), jamais avec un vrai compte client : à essayer en ligne.
+- **Lot C2 « espaces de l'équipe » fait (2026-09-26)** : espace concierge refait (tableau de bord
+  « à prendre / en cours », demande en deux colonnes, éditeur de proposition qui montre ce que verra
+  le client, envoi et retrait d'option confirmés). Espace du Gérant : tableau de bord des deux
+  activités (« à traiter », alerte si une tâche de l'assistant agit sans clic), prospects F&T filtrés
+  par statut avec appel en un clic, demandes Premium avec une page de détail en lecture seule
+  (`/admin/requests/[id]`), partenaires, boîte de réception, fiches et logements. Nouveau bouton
+  « Tout remettre en « Propose » » dans les réglages d'autonomie (`toutRemettreEnPropose`, journalisé,
+  testé). Les formulaires gardent la saisie en cas d'erreur (`src/hooks/envoyer-sans-vider.ts`).
+  Vérifié sur une page d'aperçu à données fictives, pas avec de vraies données.
 - **Lot B « acquisition de propriétaires F&T » fait (2026-09-25)** : `/proprietaires` complète
   (fiche offre validée publiée telle quelle : 20 %, sans engagement, Grand Est, services, déroulé,
   FAQ) et formulaire d'estimation (`src/server/agent/estimation.ts`, action publique : champ piège,
@@ -123,11 +131,12 @@ Mis à jour le 2026-09-25 (lots A, B et C1). Branche `v2-assistant-gerant` **fus
   compte qui a des demandes échoue (`request_status_history.changed_by` obligatoire).
 - **Attention, relance automatique** : la règle `relance_prospect_48h` est au niveau « Agit seul »
   en production. Rien ne part aujourd'hui (aucun prospect, chat coupé, pas de `RESEND_API_KEY`),
-  mais activer le chat et Resend fera partir de vraies relances.
+  mais activer le chat et Resend fera partir de vraies relances. Le tableau de bord du Gérant le
+  signale, et « Tout remettre en « Propose » » (`/admin/ft/regles`) la ramène en un clic.
 - **Base de dev en pause** (limite de deux projets gratuits) : `.env.local` pointe encore vers elle,
   donc le serveur local ne peut pas lire de données. Solution à choisir avec le Gérant (voir
   `docs/instructions-claude-code-2026-09.md`). Ne jamais pointer le local vers la production.
-- **Construit et testé** (361 tests + audits SQL sur la base de dev) : boîte de réception
+- **Construit et testé** (373 tests + audits SQL sur la base de dev) : boîte de réception
   (`/admin/boite`), fiches et logements (`/admin/fiches`), assistant du Gérant, garde-fous, journal
   verrouillé, tests de sécurité. Le chat public de prospection est construit mais **désactivé**.
 - **Rien ne part automatiquement** : toutes les tâches de l'assistant sont au niveau « Propose ».

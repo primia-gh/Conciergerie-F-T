@@ -37,6 +37,7 @@ const ACTIONS_GERANT: Record<string, () => Promise<unknown>> = {
   activerLogement: () => fichesAdmin.activerLogement(UUID),
   desactiverLogement: () => fichesAdmin.desactiverLogement(UUID),
   changerNiveauAutonomie: () => ftAdmin.changerNiveauAutonomie(UUID, formulaire()),
+  toutRemettreEnPropose: () => ftAdmin.toutRemettreEnPropose(),
   changerStatutProprietaire: () => ftAdmin.changerStatutProprietaire(UUID, UUID, formulaire()),
 };
 

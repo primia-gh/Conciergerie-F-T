@@ -48,3 +48,11 @@ describe("requestStatusLabel", () => {
     for (const status of REQUEST_STATUSES) expect(requestStatusLabel(status)).not.toBe(status);
   });
 });
+
+describe("requestStatusLabel pour l'équipe", () => {
+  it("parle du client à la troisième personne quand c'est l'équipe qui lit", () => {
+    expect(requestStatusLabel("WAITING_CLIENT")).toBe("En attente de votre réponse");
+    expect(requestStatusLabel("WAITING_CLIENT", true)).toBe("En attente du client");
+    expect(requestStatusLabel("NEW", true)).toBe(requestStatusLabel("NEW"));
+  });
+});

@@ -1,7 +1,10 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { createPartner } from "@/server/partners/actions";
+import { EnTetePage, LienRetour, PAGE } from "@/components/espace/en-tete";
 import { PartnerForm } from "../partner-form";
+
+export const metadata: Metadata = { title: "Nouveau partenaire" };
 
 export default async function NewPartnerPage() {
   const supabase = await createClient();
@@ -12,12 +15,12 @@ export default async function NewPartnerPage() {
     .returns<{ id: string; name: string }[]>();
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16">
-      <Link href="/admin/partners" className="text-sm text-fg-muted hover:text-fg">
-        ← Retour aux partenaires
-      </Link>
-      <h1 className="mt-4 font-display text-2xl font-medium text-fg">Nouveau partenaire</h1>
-      <div className="mt-6">
+    <div className={PAGE.etroite}>
+      <LienRetour href="/admin/partners">Partenaires</LienRetour>
+      <EnTetePage surtitre="Conciergerie Premium" titre="Nouveau partenaire">
+        Il sera proposé aux concierges dès qu&apos;il est « Actif ».
+      </EnTetePage>
+      <div className="mt-8">
         <PartnerForm categories={categories ?? []} action={createPartner} />
       </div>
     </div>
